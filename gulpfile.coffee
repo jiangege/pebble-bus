@@ -13,7 +13,7 @@ cmdAsync = (args...) ->
   spawn.apply @, args
 
 gulp.task "ls-compile", ->
-  gulp.src "#{__dirname}/src/js/**/*.ls"
+  gulp.src "#{__dirname}/js-src/**/*.ls"
     .pipe gulpLiveScript bare: true
     .pipe gulp.dest "#{__dirname}/src/js/"
 
