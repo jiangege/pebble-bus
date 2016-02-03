@@ -1,6 +1,7 @@
 var util2 = require('util2');
 var myutil = require('myutil');
 var Emitter = require('emitter');
+var Platform = require('platform');
 var WindowStack = require('ui/windowstack');
 var Window = require('ui/window');
 var simply = require('ui/simply');
@@ -39,7 +40,7 @@ Menu.prototype._select = function() {
   }
 };
 
-Menu.prototype._numPreloadItems = 50;
+Menu.prototype._numPreloadItems = (Platform.version() === 'aplite' ? 5 : 50);
 
 Menu.prototype._prop = function(state, clear, pushing) {
   if (this === WindowStack.top()) {
@@ -156,6 +157,10 @@ Menu.prototype._resolveMenu = function(clear, pushing) {
 Menu.prototype._resolveSection = function(e, clear) {
   var section = this._getSection(e);
   if (!section) { return; }
+  section = myutil.shadow({
+    textColor: this.state.textColor, 
+    backgroundColor: this.state.backgroundColor
+  }, section);
   section.items = this._getItems(e);
   if (this === WindowStack.top()) {
     simply.impl.menuSection.call(this, e.sectionIndex, section, clear);
