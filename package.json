@@ -20,6 +20,7 @@
     "coffee-script": "^1.10.0",
     "gulp": "^3.9.0",
     "gulp-livescript": "^3.0.0",
+    "gulp-watch": "^4.3.5",
     "livescript": "^1.4.0",
     "shelljs": "^0.5.3"
   }
