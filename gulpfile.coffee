@@ -1,6 +1,6 @@
 gulp = require "gulp"
 require "shelljs/global"
-
+gulpLiveScript = require "gulp-livescript"
 {spawn} = require "child_process"
 
 cmdAsync = (args...) ->
@@ -12,7 +12,13 @@ cmdAsync = (args...) ->
   }
   spawn.apply @, args
 
-gulp.task "debug", ->
+gulp.task "ls-compile", ->
+  gulp.src "#{__dirname}/src/js/**/*.ls"
+    .pipe gulpLiveScript bare: true
+    .pipe gulp.dest "#{__dirname}/src/js/"
+
+
+gulp.task "debug", ["ls-compile"], ->
   console.log "😃 start debug..."
   cmdAsync "pebble", ["logs"]
 
