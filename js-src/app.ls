@@ -1,13 +1,11 @@
 require! {
   "./pre-processor": PP
   "vector2": Vector2
+  "ui": UI
 }
 
-toAry = (obj) ->
-  for key, val of obj
-    "key": key
-    "val": val
 
+/*
 Lifeline =
   start: ->
     console.log "生命线游戏开始加载"
@@ -16,84 +14,107 @@ Lifeline =
     storeObj = PP.parse storeStep
 
     console.log JSON.stringify storeObj
-
-
-
-
-
-/*
-class StoreContiner
-  show: ->
-  update: ->
-  add: ->
 */
+
+
+const NT_FULLSIZE = new Vector2 144, 168 - 16
 
 class LifelineWin
   ({
     @dataList = []
     @comList = []
-    @currIndex = -1
-    @comCurrIndex = -1
-    @oneScreeSize = new Vector2 144, 20
+    @oneScreeSize = NT_FULLSIZE
     @scrollY = 0
-    @movieYSpacing = 20
+    @movieYSpacing = NT_FULLSIZE.y
     @realHeight = 0
   } = {}) ->
-    @win = new UI.window!
+    @wind = new UI.Window
+    @wind.on \click, \down, ~> @scrollBottom!
+    @wind.on \longClick, \down, ~> @scrollBottom!
+    @wind.on \click, \up, ~> @scrollUp!
+    @wind.on \longClick, \up, ~> @scrollUp!
 
-    @win.on \click, \down, ~> @scrollBottom!
-    @win.on \click, \up, ~> @scrollUp!
+
+  show: -> @wind.show!
 
 
-  show: -> @win.show
-  render: ->
+  update: ->
     @calc!
+    @calcPosition!
+    for com, i in @comList then com.update!
 
   scrollBottom: ->
-    @calcRealHeigh!
-    if Math.abs( @scrollY -= @movieSpacing ) > @realHeight - @oneScreeSize.y
-      @scrollY = -(@realHeight - @oneScreeSize.y)
-    @render!
+    @calcRealHeight!
+    return unless @realHeight < NT_FULLSIZE.y
+    if (@scrollY -= @movieYSpacing) < NT_FULLSIZE.y - @realHeight
+      @scrollY = NT_FULLSIZE.y - @realHeight
+    @update!
   scrollUp: ->
-    if @scrollY += @movieSpacing > 0
+    if (@scrollY += @movieYSpacing) > 0
       @scrollY = 0
-
-    @render!
+    @update!
 
   calcRealHeight: ->
+    @realHeight = 0
     for com, i in @comList then @realHeight += com.size.y
+
   calc: ->
     @calcRealHeight!
     for com, i in @comList
       beforeY = ( @comList[ i - 1]?.pos?.y ) ? 0
       beforeHeight = ( @comList[ i - 1]?.size?.y ) ? 0
-      com.pos.y = beforeY + beforeHeight + @scrollY
+      com.position new Vector2 0, beforeY + beforeHeight
+
+  calcPosition: ->
+    for com, i in @comList
+      com.position new Vector2 0, com.pos.y + @scrollY
+
 
   add: (data) ->
     data = ^^data
     data <<< {
       size: @oneScreeSize
+      pos: new Vector2 0, 0
     }
     @comList.push switch data.type
     | "msg" => new LifelineMsg data
     @comList = @comList.slice -3
-    @currIndex ++
+    @updateCom!
     @dataList.push data
-    @render!
+    @update!
+
+
+  updateCom: ->
+    @wind.each (e) ~> @wind.remove e
+    @comList.forEach (com) ~> com.comList.forEach (com) ~> @wind.add com
 
 
 
 class LifelineCom
-  ({size, pos}) ->
-    @size = new Vector2 size
-    @pos = new Vector2 pos
+  ({size, pos, id}) ->
+    @size = size
+    @pos = pos
+    @id = id
+    @comList = []
+
+  position: (v) -> @pos = v
+
+
 
 
 class LifelineMsg extends LifelineCom
   (data) ->
     super data
+    @rect = new UI.Rect {
+      size: @size,
+      backgroundColor: 'yellow'
+      borderColor: "green"
+    }
 
-  render: ->
+    @comList.push @rect
+
+  update: ->
+    @rect.animate {position: new Vector2 0, @pos.y}, 100
 
 
 
@@ -102,9 +123,11 @@ class LifelineMsg extends LifelineCom
 lifelineWin = new LifelineWin
 
 
-lifelineWin.add new LifelineMsg msg: "hello"
+lifelineWin.add id:"test", type: "msg", msg: "hello"
+lifelineWin.add id:"test1", type: "msg", msg: "hello"
+lifelineWin.add id:"test1", type: "msg", msg: "hello"
 
-
+lifelineWin.show!
 /*Lifeline.loadStore {
   id: "dw"
   wait: "5m"
