@@ -5,19 +5,100 @@ require! {
 }
 
 
-/*
-Lifeline =
+/*menu = new UI.Menu {
+  backgroundColor: 'black'
+  textColor: 'white'
+  highlightTextColor: 'red'
+  sections: [
+    {
+      items: [{
+        title: 'hello123'
+      }, {
+        title: 'hello'
+      }]
+    }
+  ]
+
+}
+
+menu.show()*/
+
+lastWin = null
+
+hide = ->
+  lastWin?.hide!
+
+show = (win) ->
+  win?.show!
+  lastWin := win
+
+showMsg = (text = "", cb = ->) ->
+  hide!
+  msgWin = new UI.Card {
+    body: text
+    scrollable: true
+    backgroundColor: "black"
+    bodyColor: "pictonBlue"
+  }
+  msgWin.on \click, \select, cb
+  show msgWin
+
+
+lastSelectWin = null
+showSelect =  (select = [], cb = ->) ->
+  currIndex = -1
+  hide!
+  items = for v in select then title: v
+  selectWin = new UI.Menu {
+    backgroundColor: "black"
+    textColor: "white"
+    highlightTextColor: "pictonBlue"
+    sections: [{
+      items: items
+    }]
+  }
+
+  detailCard = new UI.Card {
+    body: ""
+    scrollable: true
+    backgroundColor: "black"
+    bodyColor: "pictonBlue"
+  }
+
+  detailCard.on \click, \select, -> cb currIndex
+
+  detailCard.action select: 'images/menu_icon.png'
+  selectWin.on \select, (e) ->
+    currIndex := e.itemIndex
+    detailCard.body select[currIndex]
+    detailCard.show!
+
+  show selectWin
+
+
+  
+
+showSelect ["选择了1我觉得你还是蛮厉害的", "选择了2"], (i) ->
+  console.log i
+
+
+/*new LifelineMsg {
+  text: "hello"
+}*/
+/*Lifeline =
   start: ->
     console.log "生命线游戏开始加载"
 
   loadStore: (storeStep) ->
     storeObj = PP.parse storeStep
-
     console.log JSON.stringify storeObj
-*/
 
 
-const NT_FULLSIZE = new Vector2 144, 168 - 16
+Lifeline.start!*/
+
+
+
+/*const NT_FULLSIZE = new Vector2 144, 168 - 16
 
 class LifelineWin
   ({
@@ -127,7 +208,7 @@ lifelineWin.add id:"test", type: "msg", msg: "hello"
 lifelineWin.add id:"test1", type: "msg", msg: "hello"
 lifelineWin.add id:"test1", type: "msg", msg: "hello"
 
-lifelineWin.show!
+lifelineWin.show!*/
 /*Lifeline.loadStore {
   id: "dw"
   wait: "5m"

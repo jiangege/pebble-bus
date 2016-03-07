@@ -1,4 +1,4 @@
-gulp = require "gulp"
+gulp = require('gulp-param')(require('gulp'), process.argv)
 require "shelljs/global"
 gulpLiveScript = require "gulp-livescript"
 {spawn} = require "child_process"
@@ -18,25 +18,26 @@ gulp.task "ls-compile", ->
     .pipe gulpLiveScript bare: true
     .pipe gulp.dest "#{__dirname}/src/js/"
 
-build = ->
-  exec "
-    pebble build &&
-    pebble install --emulator basalt -v
-  "
+build = (ip) ->
 
-gulp.task "debug", ["ls-compile"], ->
+  cmd = "pebble build && "
+  cmd += if ip?
+    "pebble install --phone #{ip}"
+  else "pebble install --emulator basalt -v"
+  exec cmd
 
+gulp.task "debug", ["ls-compile"], (ip) ->
   exec "pebble kill"
   console.log "😃 start debug..."
-  if build()?.code is 0
+  if build(ip)?.code is 0
     cmdAsync "pebble", ["logs"]
-    if build().code is 0
+    if build(ip).code is 0
       watch "#{__dirname}/js-src/**/*.ls", (cb) ->
         gulp.src "#{__dirname}/js-src/**/*.ls"
           .pipe gulpLiveScript bare: true
           .on "error", console.error
           .pipe gulp.dest "#{__dirname}/src/js/"
-          .on "end", build
+          .on "end", -> build ip
       return console.log "Have fun 🍻!!"
   else
     console.log "😭"
