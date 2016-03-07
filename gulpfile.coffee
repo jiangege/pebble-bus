@@ -19,25 +19,8 @@ gulp.task "ls-compile", ->
     .pipe gulp.dest "#{__dirname}/src/js/"
 
 build = (ip) ->
+  exec "pebble build"
+  cmdAsync "pebble", ["install", "--phone", ip, "--logs"]
 
-  cmd = "pebble build && "
-  cmd += if ip?
-    "pebble install --phone #{ip}"
-  else "pebble install --emulator basalt -v"
-  exec cmd
 
-gulp.task "debug", ["ls-compile"], (ip) ->
-  exec "pebble kill"
-  console.log "😃 start debug..."
-  if build(ip)?.code is 0
-    cmdAsync "pebble", ["logs"]
-    if build(ip).code is 0
-      watch "#{__dirname}/js-src/**/*.ls", (cb) ->
-        gulp.src "#{__dirname}/js-src/**/*.ls"
-          .pipe gulpLiveScript bare: true
-          .on "error", console.error
-          .pipe gulp.dest "#{__dirname}/src/js/"
-          .on "end", -> build ip
-      return console.log "Have fun 🍻!!"
-  else
-    console.log "😭"
+gulp.task "debug", ["ls-compile"], build

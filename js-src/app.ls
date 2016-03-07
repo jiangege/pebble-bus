@@ -76,10 +76,18 @@ showSelect =  (select = [], cb = ->) ->
   show selectWin
 
 
-  
+showWait  = (timeout, text, cb = ->) ->
+  hide!
+  msgWin = new UI.Card {
+    body: "#{text}\r\n....."
+    backgroundColor: "black"
+    bodyColor: "mayGreen"
+  }
+  console.log 1
+  show msgWin
 
-showSelect ["选择了1我觉得你还是蛮厉害的", "选择了2"], (i) ->
-  console.log i
+
+showWait 1000, "泰勒正在吃屎"
 
 
 /*new LifelineMsg {

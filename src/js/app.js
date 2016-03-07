@@ -1,4 +1,4 @@
-var PP, Vector2, UI, lastWin, hide, show, showMsg, lastSelectWin, showSelect;
+var PP, Vector2, UI, lastWin, hide, show, showMsg, lastSelectWin, showSelect, showWait;
 PP = require('./pre-processor');
 Vector2 = require('vector2');
 UI = require('ui');
@@ -85,9 +85,19 @@ showSelect = function(select, cb){
   });
   return show(selectWin);
 };
-showSelect(["选择了1我觉得你还是蛮厉害的", "选择了2"], function(i){
-  return console.log(i);
-});
+showWait = function(timeout, text, cb){
+  var msgWin;
+  cb == null && (cb = function(){});
+  hide();
+  msgWin = new UI.Card({
+    body: text + "\r\n.....",
+    backgroundColor: "black",
+    bodyColor: "mayGreen"
+  });
+  console.log(1);
+  return show(msgWin);
+};
+showWait(1000, "泰勒正在吃屎");
 /*new LifelineMsg {
   text: "hello"
 }*/
