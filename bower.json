@@ -1,0 +1,19 @@
+{
+  "name": "pebble-bus",
+  "description": "realtime bus",
+  "directory": "js-src/components",
+  "authors": [
+    "jiangege <jiangege47@gmail.com>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/jiangege/pebble-lifeline",
+  "moduleType": [],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
