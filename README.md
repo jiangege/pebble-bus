@@ -1,5 +1,9 @@
-Pebble Lifeline
+Pebble Bus
 =========
 
 ## Getting Started
-gulp debug
+
+* debug on the emulator
+    npm run debug
+* debug on the phone
+    npm run debug-phone
