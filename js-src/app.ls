@@ -55,16 +55,18 @@ class NearLinesWin extends GenWin
   update: ->
     for line, i in @data
       title = ""
+      sn = line.sn
       if line.type is "collection"
         title = "我的收藏"
+        sn += "路"
       else
         title = "distance / #{line.distance}m"
 
-      if @win.section(i)?.items[0]?.title isnt line.sn
+      if @win.section(i)?.items[0]?.title isnt sn
         @win.section i, {
           title
           items:
-            * title: line.sn
+            * title: sn
             ...
         }
 
@@ -104,7 +106,7 @@ class StationDetailWin extends GenWin
           @win.section i, {
             title: "#{line.firstTime} - #{line.lastTime}"
             items:
-              * title: "#{line.name} #{desc}"
+              * title: "#{line.name}路 #{desc}"
                 subtitle: "#{line.startSn} -> #{line.endSn}"
               ...
           }
@@ -137,7 +139,6 @@ class BusesDetailWin extends GenWin
 
   load: (cb, formShow = true) ->
     if formShow
-      console.log JSON.stringify @params
       (err, detail) <~ Bus.getLineDetail @params.line
       return @loaderrorCallback err if err
       @data = detail <<< hasCollection: !!Bus.hasCollection @params.line.lineId
@@ -150,7 +151,7 @@ class BusesDetailWin extends GenWin
 
   update: ->
 
-    @win.title "#{@data.name} 需要#{@data.price}"
+    @win.title "#{@data.name}路 需要#{@data.price}"
 
     @updateCollection!
 

@@ -76,21 +76,23 @@ NearLinesWin = (function(superclass){
     });
   };
   prototype.update = function(){
-    var i$, ref$, len$, i, line, title, ref1$, ref2$, results$ = [];
+    var i$, ref$, len$, i, line, title, sn, ref1$, ref2$, results$ = [];
     for (i$ = 0, len$ = (ref$ = this.data).length; i$ < len$; ++i$) {
       i = i$;
       line = ref$[i$];
       title = "";
+      sn = line.sn;
       if (line.type === "collection") {
         title = "我的收藏";
+        sn += "路";
       } else {
         title = "distance / " + line.distance + "m";
       }
-      if (((ref1$ = this.win.section(i)) != null ? (ref2$ = ref1$.items[0]) != null ? ref2$.title : void 8 : void 8) !== line.sn) {
+      if (((ref1$ = this.win.section(i)) != null ? (ref2$ = ref1$.items[0]) != null ? ref2$.title : void 8 : void 8) !== sn) {
         results$.push(this.win.section(i, {
           title: title,
           items: [{
-            title: line.sn
+            title: sn
           }]
         }));
       }
@@ -151,7 +153,7 @@ StationDetailWin = (function(superclass){
           results$.push(this.win.section(i, {
             title: line.firstTime + " - " + line.lastTime,
             items: [{
-              title: line.name + " " + desc,
+              title: line.name + "路 " + desc,
               subtitle: line.startSn + " -> " + line.endSn
             }]
           }));
@@ -200,7 +202,6 @@ BusesDetailWin = (function(superclass){
     var ref$, this$ = this;
     formShow == null && (formShow = true);
     if (formShow) {
-      console.log(JSON.stringify(this.params));
       return Bus.getLineDetail(this.params.line, function(err, detail){
         if (err) {
           return this$.loaderrorCallback(err);
@@ -220,7 +221,7 @@ BusesDetailWin = (function(superclass){
   };
   prototype.update = function(){
     var subtitleStr, lastTravelTime;
-    this.win.title(this.data.name + " 需要" + this.data.price);
+    this.win.title(this.data.name + "路 需要" + this.data.price);
     this.updateCollection();
     subtitleStr = "";
     if (this.data.desc != null && this.data.desc.trim() !== "") {
