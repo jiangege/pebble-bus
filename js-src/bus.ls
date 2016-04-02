@@ -31,6 +31,9 @@ Bus =
       opts.url += @preFillParams params
     else
       opts.data = @preFillParams params, false
+
+    console.log "request #{method} #{opts.url}"
+
     ajax opts
     , (data) ~>
       try
@@ -44,7 +47,7 @@ Bus =
       catch error
         cb error
 
-    , (error) -> cb new Error "The ajax request failed: #{error}"
+    , (error) -> cb new Error "网络错误"
 
   handerRes: (data) -> JSON.parse (data.replace /\*|#|(YGKJ)/gmi, "")
 
@@ -157,11 +160,14 @@ Bus =
         cb new Error, "无法获取城市信息"
 
   auth: (cb) ->
-    (err) <~ @getUserID
+    (err, userId) <~ @getUserID
+    console.log "获得用户id#{userId}"
     return cb err if err
-    (err) <~ @getCurrentLocation
+    (err, coords) <~ @getCurrentLocation
+    console.log "获得当前坐标#{JSON.stringify coords}"
     return cb err if err
-    (err) <~ @getCurrentCity
+    (err, cityInfo) <~ @getCurrentCity
+    console.log "获得当前城市信息#{JSON.stringify cityInfo}"
     return cb err if err
     cb null
 
@@ -218,43 +224,6 @@ Bus =
         lines
       }
 
-  handleDetail: (data, cb) ->
-    stationName = ""
-    for v, i in data.stations
-      if v.order is data.targetOrder
-        stationName = v.sn
-
-    lastTravelTime = -1
-
-    buses = for v, i in data.buses
-      rv = {
-        state: v.state
-      }
-      if v.state > -1 and v.travels.length > 0
-        {arrivalTime, travelTime} = v.travels[0]
-        if lastTravelTime is -1 or travelTime < lastTravelTime
-          lastTravelTime = travelTime
-        rv <<< {
-          arrivalTime
-          travelTime
-        }
-      rv
-
-    cb null, {
-      name: data.line.name
-      price: data.line.price
-      depDesc: data.depDesc
-      desc: data.line.desc
-      firstTime: data.line.firstTime
-      lastTime: data.line.lastTime
-      startSn: @encodeSn data.line.startSn
-      endSn: @encodeSn data.line.endSn
-      flpolicy: data.line.sortPolicy.replace "flpolicy=", ""
-      lastTravelTime
-      buses
-    }
-
-
   getLineDetail: ( {lineId, targetOrder}, cb) ->
     @request {
       path: "/bus/line!lineDetail.action"
@@ -266,7 +235,40 @@ Bus =
         "targetOrder": targetOrder
     }, (err, data) ~>
       return cb err if err
-      @handleDetail data, cb
+      stationName = ""
+      for v, i in data.stations
+        if v.order is data.targetOrder
+          stationName = v.sn
+
+      lastTravelTime = -1
+
+      buses = for v, i in data.buses
+        rv = {
+          state: v.state
+        }
+        if v.state > -1 and v.travels.length > 0
+          {arrivalTime, travelTime} = v.travels[0]
+          if lastTravelTime is -1 or travelTime < lastTravelTime
+            lastTravelTime = travelTime
+          rv <<< {
+            arrivalTime
+            travelTime
+          }
+        rv
+
+      cb null, {
+        name: data.line.name
+        price: data.line.price
+        depDesc: data.depDesc
+        desc: data.line.desc
+        firstTime: data.line.firstTime
+        lastTime: data.line.lastTime
+        startSn: @encodeSn data.line.startSn
+        endSn: @encodeSn data.line.endSn
+        flpolicy: data.line.sortPolicy.replace "flpolicy=", ""
+        lastTravelTime
+        buses
+      }
 
 
   updateBusesDetail: ( {lineId, targetOrder, flpolicy}, cb) ->
@@ -280,12 +282,54 @@ Bus =
         "lineId": lineId
         "targetOrder": targetOrder
         "filter": 1
-    }, (err, data) ->
+    }, (err, data) ~>
       return cb err if err
-      @handleDetail data, cb
 
+      lastTravelTime = -1
+      buses = for v, i in data.buses
+        rv = {
+          state: v.state
+        }
+        if v.state > -1 and v.travels.length > 0
+          {arrivalTime, travelTime} = v.travels[0]
+          if lastTravelTime is -1 or travelTime < lastTravelTime
+            lastTravelTime = travelTime
+          rv <<< {
+            arrivalTime
+            travelTime
+          }
+        rv
+      cb null, {
+        depDesc: data.depDesc
+        desc: data.line.desc
+        lastTravelTime
+        buses
+      }
 
+  collectionList: ->
+    collectionList = Settings.option \collectionList or []
+    Settings.option \collectionList, collectionList
+    collectionList
 
+  joinCollection: ({lineId, sn, targetOrder}) ->
+    collectionList = @collectionList!
+    for v, i in collectionList then if lineId is v.lineId then return
+    collectionList.push {
+      lineId
+      targetOrder
+      sn
+    }
+    Settings.option \collectionList, collectionList
+
+  hasCollection: (lineId) ->
+    collectionList = @collectionList!
+    for v, i in collectionList then if lineId is v.lineId then return true
+
+  removeCollection: (lineId) ->
+    collectionList = @collectionList!
+    newCollectionList = []
+    for v, i in collectionList then if lineId isnt v.lineId then newCollectionList.push v
+    Settings.option \collectionList, newCollectionList
 
 
 

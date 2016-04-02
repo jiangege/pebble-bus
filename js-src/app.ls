@@ -4,8 +4,8 @@ require! {
   "settings": Settings
 }
 
-class Component
-  updateInv: 1000 * 10
+class GenWin
+  updateInv: 1000 * 15
   _updateInv: null
 
   show: (@params = {}) -> @win.show!
@@ -25,7 +25,7 @@ class Component
   stopUpdateTimer: ->
     clearInterval @_updateInv
 
-class NearLinesWin extends Component
+class NearLinesWin extends GenWin
   ->
     @win = new UI.Menu {
       backgroundColor: \white
@@ -41,27 +41,36 @@ class NearLinesWin extends Component
       @load ~> @update!
 
 
-  load: (cb)->
+  load: (cb) ->
     (err, lines) <~ Bus.getNearLines
     return @loaderrorCallback err if err
-    @data = lines
+
+    collectionList = for v, i in Bus.collectionList!
+      v.type = "collection"
+      v
+
+    @data = collectionList ++ lines
     cb!
 
   update: ->
-    sections = for line, i in @data
-      {
-        title: "distance / #{line.distance}m"
+    for line, i in @data
+      title = ""
+      if line.type is "collection"
+        title = "我的收藏"
+      else
+        title = "distance / #{line.distance}m"
+      @win.section i, {
+        title
         items:
           * title: line.sn
           ...
       }
-    @win.sections sections
 
   selectCallback: ->
   onselect: (cb) -> @selectCallback = cb
 
 
-class StationDetailWin extends Component
+class StationDetailWin extends GenWin
   ->
     @win = new UI.Menu {
       backgroundColor: 'white'
@@ -83,10 +92,10 @@ class StationDetailWin extends Component
     cb!
 
   update: ->
-    sections = [{title: @data.sn, items: []}]
+    @win.section 0, title: @data.sn, items: []
     for line, i in @data.lines
       desc = if line.desc then "(#{line.desc})" else ""
-      sections.push {
+      @win.section i + 1, {
         title: "#{line.firstTime} - #{line.lastTime}"
         items:
           * title: "#{line.name} #{desc}"
@@ -94,14 +103,11 @@ class StationDetailWin extends Component
           ...
       }
 
-    @win.sections sections
-
-
   selectCallback: ->
 
   onselect: (cb) -> @selectCallback = cb
 
-class BusesDetailWin extends Component
+class BusesDetailWin extends GenWin
   ->
     @win = new UI.Card {
       scrollable: true
@@ -113,11 +119,21 @@ class BusesDetailWin extends Component
     @win.on \hide, (e) ~>
       @stopUpdateTimer!
 
+    @win.on \click, \select, (e) ~>
+      return unless @data?
+      @data.hasCollection = !@data.hasCollection
+      if @data.hasCollection
+        Bus.joinCollection @params.line <<< sn: @data.name
+      else
+        Bus.removeCollection @params.line.lineId
+
+      @updateCollection!
+
   load: (cb, formShow = true) ->
     if formShow
       (err, detail) <~ Bus.getLineDetail @params.line
       return @loaderrorCallback err if err
-      @data = detail
+      @data = detail <<< hasCollection: !!Bus.hasCollection @params.line.lineId
       cb!
     else if @data
       (err, detail) <~ Bus.updateBusesDetail {} <<< @params.line <<< {flpolicy: @data.flpolicy}
@@ -125,10 +141,11 @@ class BusesDetailWin extends Component
       @data <<< detail
       cb!
 
-
-
   update: ->
+
     @win.title "#{@data.name} 需要#{@data.price}"
+
+    @updateCollection!
 
     subtitleStr = ""
 
@@ -148,8 +165,12 @@ class BusesDetailWin extends Component
       #{@data.startSn} -> #{@data.endSn}
     """
 
+  updateCollection: ->
+    title = @win.title!
+    @win.title title.replace("(已收藏)", "") + if @data.hasCollection then "(已收藏)" else ""
 
-class AlertWin extends Component
+
+class AlertWin extends GenWin
   ->
     @win = new UI.Card {
       scrollable: true
@@ -169,6 +190,24 @@ class AlertWin extends Component
     @win.body @params.info
 
 
+class SplashScreenWin extends GenWin
+  ->
+    @win = new UI.Card {
+      scrollable: true
+      title: "加载中..."
+    }
+
+    @win.on \show, ~>
+      @load!
+
+  load: ->
+    (err) <~ Bus.auth
+    return @loaderrorCallback err if err
+    @loadsuccessCallback!
+
+  loadsuccessCallback: ->
+  onloadsuccess: (cb) -> @loadsuccessCallback = cb
+
 
 BusUI =
   wins:
@@ -176,6 +215,7 @@ BusUI =
     stationDetailWin: new StationDetailWin
     busesDetailWin: new BusesDetailWin
     alertWin: new AlertWin
+    splashScreenWin: new SplashScreenWin
   init: ->
     for let i, win of @wins
       win.onloaderror (error) ~>
@@ -185,11 +225,19 @@ BusUI =
           info: error.message
         }
 
-    @wins.nearLinesWin.show!
-    (line) <~ @wins.nearLinesWin.onselect
-    @wins.stationDetailWin.show line: line
-    (line) <~ @wins.stationDetailWin.onselect
-    @wins.busesDetailWin.show line: line
+    @wins.splashScreenWin.onloadsuccess ~>
+      @wins.nearLinesWin.show!
+      @wins.splashScreenWin.hide!
+      (line) <~ @wins.nearLinesWin.onselect
+
+      if line.type is \collection
+        @wins.busesDetailWin.show line: line
+      else
+        @wins.stationDetailWin.show line: line
+      (line) <~ @wins.stationDetailWin.onselect
+      @wins.busesDetailWin.show line: line
+
+    @wins.splashScreenWin.show!
 
 
 BusUI.init!

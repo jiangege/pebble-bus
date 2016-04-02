@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "debug": "gulp ls-compile&&pebble build&&pebble install --emulator basalt&& pebble logs",
-    "debug-phone": "gulp ls-compile&&pebble build&&pebble install --phone 192.168.1.5 --logs"
+    "debug-phone": "gulp ls-compile&&pebble build&&pebble install --phone 192.168.1.107 --logs"
   },
   "repository": {
     "type": "git",

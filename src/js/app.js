@@ -1,11 +1,11 @@
-var Bus, UI, Settings, Component, NearLinesWin, StationDetailWin, BusesDetailWin, AlertWin, BusUI;
+var Bus, UI, Settings, GenWin, NearLinesWin, StationDetailWin, BusesDetailWin, AlertWin, SplashScreenWin, BusUI;
 Bus = require('bus');
 UI = require('ui');
 Settings = require('settings');
-Component = (function(){
-  Component.displayName = 'Component';
-  var prototype = Component.prototype, constructor = Component;
-  prototype.updateInv = 1000 * 10;
+GenWin = (function(){
+  GenWin.displayName = 'GenWin';
+  var prototype = GenWin.prototype, constructor = GenWin;
+  prototype.updateInv = 1000 * 15;
   prototype._updateInv = null;
   prototype.show = function(params){
     this.params = params != null
@@ -32,8 +32,8 @@ Component = (function(){
   prototype.stopUpdateTimer = function(){
     return clearInterval(this._updateInv);
   };
-  function Component(){}
-  return Component;
+  function GenWin(){}
+  return GenWin;
 }());
 NearLinesWin = (function(superclass){
   var prototype = extend$((import$(NearLinesWin, superclass).displayName = 'NearLinesWin', NearLinesWin), superclass).prototype, constructor = NearLinesWin;
@@ -59,35 +59,48 @@ NearLinesWin = (function(superclass){
   prototype.load = function(cb){
     var this$ = this;
     return Bus.getNearLines(function(err, lines){
+      var collectionList, res$, i$, ref$, len$, i, v;
       if (err) {
         return this$.loaderrorCallback(err);
       }
-      this$.data = lines;
+      res$ = [];
+      for (i$ = 0, len$ = (ref$ = Bus.collectionList()).length; i$ < len$; ++i$) {
+        i = i$;
+        v = ref$[i$];
+        v.type = "collection";
+        res$.push(v);
+      }
+      collectionList = res$;
+      this$.data = collectionList.concat(lines);
       return cb();
     });
   };
   prototype.update = function(){
-    var sections, res$, i$, ref$, len$, i, line;
-    res$ = [];
+    var i$, ref$, len$, i, line, title, results$ = [];
     for (i$ = 0, len$ = (ref$ = this.data).length; i$ < len$; ++i$) {
       i = i$;
       line = ref$[i$];
-      res$.push({
-        title: "distance / " + line.distance + "m",
+      title = "";
+      if (line.type === "collection") {
+        title = "我的收藏";
+      } else {
+        title = "distance / " + line.distance + "m";
+      }
+      results$.push(this.win.section(i, {
+        title: title,
         items: [{
           title: line.sn
         }]
-      });
+      }));
     }
-    sections = res$;
-    return this.win.sections(sections);
+    return results$;
   };
   prototype.selectCallback = function(){};
   prototype.onselect = function(cb){
     return this.selectCallback = cb;
   };
   return NearLinesWin;
-}(Component));
+}(GenWin));
 StationDetailWin = (function(superclass){
   var prototype = extend$((import$(StationDetailWin, superclass).displayName = 'StationDetailWin', StationDetailWin), superclass).prototype, constructor = StationDetailWin;
   function StationDetailWin(){
@@ -120,31 +133,31 @@ StationDetailWin = (function(superclass){
     });
   };
   prototype.update = function(){
-    var sections, i$, ref$, len$, i, line, desc;
-    sections = [{
+    var i$, ref$, len$, i, line, desc, results$ = [];
+    this.win.section(0, {
       title: this.data.sn,
       items: []
-    }];
+    });
     for (i$ = 0, len$ = (ref$ = this.data.lines).length; i$ < len$; ++i$) {
       i = i$;
       line = ref$[i$];
       desc = line.desc ? "(" + line.desc + ")" : "";
-      sections.push({
+      results$.push(this.win.section(i + 1, {
         title: line.firstTime + " - " + line.lastTime,
         items: [{
           title: line.name + " " + desc,
           subtitle: line.startSn + " -> " + line.endSn
         }]
-      });
+      }));
     }
-    return this.win.sections(sections);
+    return results$;
   };
   prototype.selectCallback = function(){};
   prototype.onselect = function(cb){
     return this.selectCallback = cb;
   };
   return StationDetailWin;
-}(Component));
+}(GenWin));
 BusesDetailWin = (function(superclass){
   var prototype = extend$((import$(BusesDetailWin, superclass).displayName = 'BusesDetailWin', BusesDetailWin), superclass).prototype, constructor = BusesDetailWin;
   function BusesDetailWin(){
@@ -161,6 +174,19 @@ BusesDetailWin = (function(superclass){
     this.win.on('hide', function(e){
       return this$.stopUpdateTimer();
     });
+    this.win.on('click', 'select', function(e){
+      var ref$;
+      if (this$.data == null) {
+        return;
+      }
+      this$.data.hasCollection = !this$.data.hasCollection;
+      if (this$.data.hasCollection) {
+        Bus.joinCollection((ref$ = this$.params.line, ref$.sn = this$.data.name, ref$));
+      } else {
+        Bus.removeCollection(this$.params.line.lineId);
+      }
+      return this$.updateCollection();
+    });
   }
   prototype.load = function(cb, formShow){
     var ref$, this$ = this;
@@ -170,7 +196,7 @@ BusesDetailWin = (function(superclass){
         if (err) {
           return this$.loaderrorCallback(err);
         }
-        this$.data = detail;
+        this$.data = (detail.hasCollection = !!Bus.hasCollection(this$.params.line.lineId), detail);
         return cb();
       });
     } else if (this.data) {
@@ -186,6 +212,7 @@ BusesDetailWin = (function(superclass){
   prototype.update = function(){
     var subtitleStr, lastTravelTime;
     this.win.title(this.data.name + " 需要" + this.data.price);
+    this.updateCollection();
     subtitleStr = "";
     if (this.data.desc != null && this.data.desc.trim() !== "") {
       subtitleStr = this.data.depDesc || this.data.desc;
@@ -200,8 +227,13 @@ BusesDetailWin = (function(superclass){
     this.win.subtitle(subtitleStr);
     return this.win.body("" + this.data.firstTime + " - " + this.data.lastTime + "\n" + this.data.startSn + " -> " + this.data.endSn);
   };
+  prototype.updateCollection = function(){
+    var title;
+    title = this.win.title();
+    return this.win.title(title.replace("(已收藏)", "") + (this.data.hasCollection ? "(已收藏)" : ""));
+  };
   return BusesDetailWin;
-}(Component));
+}(GenWin));
 AlertWin = (function(superclass){
   var prototype = extend$((import$(AlertWin, superclass).displayName = 'AlertWin', AlertWin), superclass).prototype, constructor = AlertWin;
   function AlertWin(){
@@ -226,30 +258,68 @@ AlertWin = (function(superclass){
     return this.win.body(this.params.info);
   };
   return AlertWin;
-}(Component));
+}(GenWin));
+SplashScreenWin = (function(superclass){
+  var prototype = extend$((import$(SplashScreenWin, superclass).displayName = 'SplashScreenWin', SplashScreenWin), superclass).prototype, constructor = SplashScreenWin;
+  function SplashScreenWin(){
+    var this$ = this;
+    this.win = new UI.Card({
+      scrollable: true,
+      title: "加载中..."
+    });
+    this.win.on('show', function(){
+      return this$.load();
+    });
+  }
+  prototype.load = function(){
+    var this$ = this;
+    return Bus.auth(function(err){
+      if (err) {
+        return this$.loaderrorCallback(err);
+      }
+      return this$.loadsuccessCallback();
+    });
+  };
+  prototype.loadsuccessCallback = function(){};
+  prototype.onloadsuccess = function(cb){
+    return this.loadsuccessCallback = cb;
+  };
+  return SplashScreenWin;
+}(GenWin));
 BusUI = {
   wins: {
     nearLinesWin: new NearLinesWin,
     stationDetailWin: new StationDetailWin,
     busesDetailWin: new BusesDetailWin,
-    alertWin: new AlertWin
+    alertWin: new AlertWin,
+    splashScreenWin: new SplashScreenWin
   },
   init: function(){
     var i$, ref$, this$ = this;
     for (i$ in ref$ = this.wins) {
       (fn$.call(this, i$, ref$[i$]));
     }
-    this.wins.nearLinesWin.show();
-    return this.wins.nearLinesWin.onselect(function(line){
-      this$.wins.stationDetailWin.show({
-        line: line
-      });
-      return this$.wins.stationDetailWin.onselect(function(line){
-        return this$.wins.busesDetailWin.show({
-          line: line
+    this.wins.splashScreenWin.onloadsuccess(function(){
+      this$.wins.nearLinesWin.show();
+      this$.wins.splashScreenWin.hide();
+      return this$.wins.nearLinesWin.onselect(function(line){
+        if (line.type === 'collection') {
+          this$.wins.busesDetailWin.show({
+            line: line
+          });
+        } else {
+          this$.wins.stationDetailWin.show({
+            line: line
+          });
+        }
+        return this$.wins.stationDetailWin.onselect(function(line){
+          return this$.wins.busesDetailWin.show({
+            line: line
+          });
         });
       });
     });
+    return this.wins.splashScreenWin.show();
     function fn$(i, win){
       var this$ = this;
       win.onloaderror(function(error){

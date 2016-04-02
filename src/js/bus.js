@@ -27,6 +27,7 @@ Bus = {
     } else {
       opts.data = this.preFillParams(params, false);
     }
+    console.log("request " + method + " " + opts.url);
     return ajax(opts, function(data){
       var ref$, error;
       try {
@@ -43,7 +44,7 @@ Bus = {
         return cb(error);
       }
     }, function(error){
-      return cb(new Error("The ajax request failed: " + error));
+      return cb(new Error("网络错误"));
     });
   },
   handerRes: function(data){
@@ -189,15 +190,18 @@ Bus = {
   },
   auth: function(cb){
     var this$ = this;
-    return this.getUserID(function(err){
+    return this.getUserID(function(err, userId){
+      console.log("获得用户id" + userId);
       if (err) {
         return cb(err);
       }
-      return this$.getCurrentLocation(function(err){
+      return this$.getCurrentLocation(function(err, coords){
+        console.log("获得当前坐标" + JSON.stringify(coords));
         if (err) {
           return cb(err);
         }
-        return this$.getCurrentCity(function(err){
+        return this$.getCurrentCity(function(err, cityInfo){
+          console.log("获得当前城市信息" + JSON.stringify(cityInfo));
           if (err) {
             return cb(err);
           }
@@ -287,49 +291,6 @@ Bus = {
       });
     });
   },
-  handleDetail: function(data, cb){
-    var stationName, i$, ref$, len$, i, v, lastTravelTime, buses, res$, rv, ref1$, arrivalTime, travelTime;
-    stationName = "";
-    for (i$ = 0, len$ = (ref$ = data.stations).length; i$ < len$; ++i$) {
-      i = i$;
-      v = ref$[i$];
-      if (v.order === data.targetOrder) {
-        stationName = v.sn;
-      }
-    }
-    lastTravelTime = -1;
-    res$ = [];
-    for (i$ = 0, len$ = (ref$ = data.buses).length; i$ < len$; ++i$) {
-      i = i$;
-      v = ref$[i$];
-      rv = {
-        state: v.state
-      };
-      if (v.state > -1 && v.travels.length > 0) {
-        ref1$ = v.travels[0], arrivalTime = ref1$.arrivalTime, travelTime = ref1$.travelTime;
-        if (lastTravelTime === -1 || travelTime < lastTravelTime) {
-          lastTravelTime = travelTime;
-        }
-        rv.arrivalTime = arrivalTime;
-        rv.travelTime = travelTime;
-      }
-      res$.push(rv);
-    }
-    buses = res$;
-    return cb(null, {
-      name: data.line.name,
-      price: data.line.price,
-      depDesc: data.depDesc,
-      desc: data.line.desc,
-      firstTime: data.line.firstTime,
-      lastTime: data.line.lastTime,
-      startSn: this.encodeSn(data.line.startSn),
-      endSn: this.encodeSn(data.line.endSn),
-      flpolicy: data.line.sortPolicy.replace("flpolicy=", ""),
-      lastTravelTime: lastTravelTime,
-      buses: buses
-    });
-  },
   getLineDetail: function(arg$, cb){
     var lineId, targetOrder, this$ = this;
     lineId = arg$.lineId, targetOrder = arg$.targetOrder;
@@ -343,14 +304,54 @@ Bus = {
         "targetOrder": targetOrder
       }
     }, function(err, data){
+      var stationName, i$, ref$, len$, i, v, lastTravelTime, buses, res$, rv, ref1$, arrivalTime, travelTime;
       if (err) {
         return cb(err);
       }
-      return this$.handleDetail(data, cb);
+      stationName = "";
+      for (i$ = 0, len$ = (ref$ = data.stations).length; i$ < len$; ++i$) {
+        i = i$;
+        v = ref$[i$];
+        if (v.order === data.targetOrder) {
+          stationName = v.sn;
+        }
+      }
+      lastTravelTime = -1;
+      res$ = [];
+      for (i$ = 0, len$ = (ref$ = data.buses).length; i$ < len$; ++i$) {
+        i = i$;
+        v = ref$[i$];
+        rv = {
+          state: v.state
+        };
+        if (v.state > -1 && v.travels.length > 0) {
+          ref1$ = v.travels[0], arrivalTime = ref1$.arrivalTime, travelTime = ref1$.travelTime;
+          if (lastTravelTime === -1 || travelTime < lastTravelTime) {
+            lastTravelTime = travelTime;
+          }
+          rv.arrivalTime = arrivalTime;
+          rv.travelTime = travelTime;
+        }
+        res$.push(rv);
+      }
+      buses = res$;
+      return cb(null, {
+        name: data.line.name,
+        price: data.line.price,
+        depDesc: data.depDesc,
+        desc: data.line.desc,
+        firstTime: data.line.firstTime,
+        lastTime: data.line.lastTime,
+        startSn: this$.encodeSn(data.line.startSn),
+        endSn: this$.encodeSn(data.line.endSn),
+        flpolicy: data.line.sortPolicy.replace("flpolicy=", ""),
+        lastTravelTime: lastTravelTime,
+        buses: buses
+      });
     });
   },
   updateBusesDetail: function(arg$, cb){
-    var lineId, targetOrder, flpolicy;
+    var lineId, targetOrder, flpolicy, this$ = this;
     lineId = arg$.lineId, targetOrder = arg$.targetOrder, flpolicy = arg$.flpolicy;
     return this.request({
       path: "/bus/line!busesDetail.action",
@@ -364,11 +365,84 @@ Bus = {
         "filter": 1
       }
     }, function(err, data){
+      var lastTravelTime, buses, res$, i$, ref$, len$, i, v, rv, ref1$, arrivalTime, travelTime;
       if (err) {
         return cb(err);
       }
-      return this.handleDetail(data, cb);
+      lastTravelTime = -1;
+      res$ = [];
+      for (i$ = 0, len$ = (ref$ = data.buses).length; i$ < len$; ++i$) {
+        i = i$;
+        v = ref$[i$];
+        rv = {
+          state: v.state
+        };
+        if (v.state > -1 && v.travels.length > 0) {
+          ref1$ = v.travels[0], arrivalTime = ref1$.arrivalTime, travelTime = ref1$.travelTime;
+          if (lastTravelTime === -1 || travelTime < lastTravelTime) {
+            lastTravelTime = travelTime;
+          }
+          rv.arrivalTime = arrivalTime;
+          rv.travelTime = travelTime;
+        }
+        res$.push(rv);
+      }
+      buses = res$;
+      return cb(null, {
+        depDesc: data.depDesc,
+        desc: data.line.desc,
+        lastTravelTime: lastTravelTime,
+        buses: buses
+      });
     });
+  },
+  collectionList: function(){
+    var collectionList;
+    collectionList = Settings.option('collectionList') || [];
+    Settings.option('collectionList', collectionList);
+    return collectionList;
+  },
+  joinCollection: function(arg$){
+    var lineId, sn, targetOrder, collectionList, i$, len$, i, v;
+    lineId = arg$.lineId, sn = arg$.sn, targetOrder = arg$.targetOrder;
+    collectionList = this.collectionList();
+    for (i$ = 0, len$ = collectionList.length; i$ < len$; ++i$) {
+      i = i$;
+      v = collectionList[i$];
+      if (lineId === v.lineId) {
+        return;
+      }
+    }
+    collectionList.push({
+      lineId: lineId,
+      targetOrder: targetOrder,
+      sn: sn
+    });
+    return Settings.option('collectionList', collectionList);
+  },
+  hasCollection: function(lineId){
+    var collectionList, i$, len$, i, v;
+    collectionList = this.collectionList();
+    for (i$ = 0, len$ = collectionList.length; i$ < len$; ++i$) {
+      i = i$;
+      v = collectionList[i$];
+      if (lineId === v.lineId) {
+        return true;
+      }
+    }
+  },
+  removeCollection: function(lineId){
+    var collectionList, newCollectionList, i$, len$, i, v;
+    collectionList = this.collectionList();
+    newCollectionList = [];
+    for (i$ = 0, len$ = collectionList.length; i$ < len$; ++i$) {
+      i = i$;
+      v = collectionList[i$];
+      if (lineId !== v.lineId) {
+        newCollectionList.push(v);
+      }
+    }
+    return Settings.option('collectionList', newCollectionList);
   }
 };
 module.exports = Bus;
