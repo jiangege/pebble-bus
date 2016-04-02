@@ -76,7 +76,7 @@ NearLinesWin = (function(superclass){
     });
   };
   prototype.update = function(){
-    var i$, ref$, len$, i, line, title, results$ = [];
+    var i$, ref$, len$, i, line, title, ref1$, ref2$, results$ = [];
     for (i$ = 0, len$ = (ref$ = this.data).length; i$ < len$; ++i$) {
       i = i$;
       line = ref$[i$];
@@ -86,12 +86,14 @@ NearLinesWin = (function(superclass){
       } else {
         title = "distance / " + line.distance + "m";
       }
-      results$.push(this.win.section(i, {
-        title: title,
-        items: [{
-          title: line.sn
-        }]
-      }));
+      if (((ref1$ = this.win.section(i)) != null ? (ref2$ = ref1$.items[0]) != null ? ref2$.title : void 8 : void 8) !== line.sn) {
+        results$.push(this.win.section(i, {
+          title: title,
+          items: [{
+            title: line.sn
+          }]
+        }));
+      }
     }
     return results$;
   };
@@ -112,7 +114,8 @@ StationDetailWin = (function(superclass){
       highlightTextColor: 'white'
     });
     this.win.on('select', function(e){
-      if (this$.data != null) {
+      var ref$;
+      if (((ref$ = this$.data) != null ? ref$.lines[e.sectionIndex - 1] : void 8) != null) {
         return this$.selectCallback(this$.data.lines[e.sectionIndex - 1]);
       }
     });
@@ -133,22 +136,27 @@ StationDetailWin = (function(superclass){
     });
   };
   prototype.update = function(){
-    var i$, ref$, len$, i, line, desc, results$ = [];
-    this.win.section(0, {
-      title: this.data.sn,
-      items: []
-    });
+    var i$, ref$, len$, i, line, desc, ref1$, ref2$, results$ = [];
     for (i$ = 0, len$ = (ref$ = this.data.lines).length; i$ < len$; ++i$) {
       i = i$;
       line = ref$[i$];
-      desc = line.desc ? "(" + line.desc + ")" : "";
-      results$.push(this.win.section(i + 1, {
-        title: line.firstTime + " - " + line.lastTime,
-        items: [{
-          title: line.name + " " + desc,
-          subtitle: line.startSn + " -> " + line.endSn
-        }]
-      }));
+      if (i === 0) {
+        results$.push(this.win.section(i, {
+          title: this.data.sn,
+          items: []
+        }));
+      } else {
+        desc = line.desc ? "(" + line.desc + ")" : "";
+        if (((ref1$ = this.win.section(i)) != null ? (ref2$ = ref1$.items[0]) != null ? ref2$.title : void 8 : void 8) !== line.name + " " + desc) {
+          results$.push(this.win.section(i, {
+            title: line.firstTime + " - " + line.lastTime,
+            items: [{
+              title: line.name + " " + desc,
+              subtitle: line.startSn + " -> " + line.endSn
+            }]
+          }));
+        }
+      }
     }
     return results$;
   };
@@ -192,6 +200,7 @@ BusesDetailWin = (function(superclass){
     var ref$, this$ = this;
     formShow == null && (formShow = true);
     if (formShow) {
+      console.log(JSON.stringify(this.params));
       return Bus.getLineDetail(this.params.line, function(err, detail){
         if (err) {
           return this$.loaderrorCallback(err);

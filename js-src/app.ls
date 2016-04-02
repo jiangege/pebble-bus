@@ -59,12 +59,14 @@ class NearLinesWin extends GenWin
         title = "我的收藏"
       else
         title = "distance / #{line.distance}m"
-      @win.section i, {
-        title
-        items:
-          * title: line.sn
-          ...
-      }
+
+      if @win.section(i)?.items[0]?.title isnt line.sn
+        @win.section i, {
+          title
+          items:
+            * title: line.sn
+            ...
+        }
 
   selectCallback: ->
   onselect: (cb) -> @selectCallback = cb
@@ -80,7 +82,7 @@ class StationDetailWin extends GenWin
     }
 
     @win.on \select, (e) ~>
-      if @data? then @selectCallback @data.lines[e.sectionIndex - 1]
+      if @data?.lines[e.sectionIndex - 1]? then @selectCallback @data.lines[e.sectionIndex - 1]
 
     @win.on \show, (e) ~>
       @load ~> @update!
@@ -92,16 +94,20 @@ class StationDetailWin extends GenWin
     cb!
 
   update: ->
-    @win.section 0, title: @data.sn, items: []
+
     for line, i in @data.lines
-      desc = if line.desc then "(#{line.desc})" else ""
-      @win.section i + 1, {
-        title: "#{line.firstTime} - #{line.lastTime}"
-        items:
-          * title: "#{line.name} #{desc}"
-            subtitle: "#{line.startSn} -> #{line.endSn}"
-          ...
-      }
+      if i is 0
+        @win.section i, title: @data.sn, items: []
+      else
+        desc = if line.desc then "(#{line.desc})" else ""
+        if @win.section(i)?.items[0]?.title isnt "#{line.name} #{desc}"
+          @win.section i, {
+            title: "#{line.firstTime} - #{line.lastTime}"
+            items:
+              * title: "#{line.name} #{desc}"
+                subtitle: "#{line.startSn} -> #{line.endSn}"
+              ...
+          }
 
   selectCallback: ->
 
@@ -131,6 +137,7 @@ class BusesDetailWin extends GenWin
 
   load: (cb, formShow = true) ->
     if formShow
+      console.log JSON.stringify @params
       (err, detail) <~ Bus.getLineDetail @params.line
       return @loaderrorCallback err if err
       @data = detail <<< hasCollection: !!Bus.hasCollection @params.line.lineId
@@ -229,7 +236,6 @@ BusUI =
       @wins.nearLinesWin.show!
       @wins.splashScreenWin.hide!
       (line) <~ @wins.nearLinesWin.onselect
-
       if line.type is \collection
         @wins.busesDetailWin.show line: line
       else
