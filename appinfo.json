@@ -25,12 +25,11 @@
   "shortName": "pebble bus",
   "targetPlatforms": [
     "aplite",
-    "basalt",
-    "chalk"
+    "basalt"
   ],
   "uuid": "133015f0-cf20-4c03-996b-3c9be5a64e5d",
-  "versionCode": 1,
-  "versionLabel": "0.2",
+  "versionCode": 3,
+  "versionLabel": "0.3",
   "watchapp": {
     "watchface": false
   }
