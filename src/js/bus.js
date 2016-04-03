@@ -44,7 +44,7 @@ Bus = {
         return cb(error);
       }
     }, function(error){
-      return cb(new Error("网络错误"));
+      return cb(new Error("网络错误:" + error));
     });
   },
   handerRes: function(data){
