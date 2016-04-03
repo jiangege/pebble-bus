@@ -47,7 +47,7 @@ Bus =
       catch error
         cb error
 
-    , (error) -> cb new Error "网络错误"
+    , (error) -> cb new Error "网络错误:#{error}"
 
   handerRes: (data) -> JSON.parse (data.replace /\*|#|(YGKJ)/gmi, "")
 
