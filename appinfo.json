@@ -28,8 +28,8 @@
     "basalt"
   ],
   "uuid": "133015f0-cf20-4c03-996b-3c9be5a64e5d",
-  "versionCode": 5,
-  "versionLabel": "0.5",
+  "versionCode": 7,
+  "versionLabel": "0.7",
   "watchapp": {
     "watchface": false
   }
