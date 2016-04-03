@@ -399,8 +399,8 @@ Bus = {
     return collectionList;
   },
   joinCollection: function(arg$){
-    var lineId, sn, targetOrder, collectionList, i$, len$, i, v;
-    lineId = arg$.lineId, sn = arg$.sn, targetOrder = arg$.targetOrder;
+    var lineId, sn, targetOrder, startSn, endSn, collectionList, i$, len$, i, v;
+    lineId = arg$.lineId, sn = arg$.sn, targetOrder = arg$.targetOrder, startSn = arg$.startSn, endSn = arg$.endSn;
     collectionList = this.collectionList();
     for (i$ = 0, len$ = collectionList.length; i$ < len$; ++i$) {
       i = i$;
@@ -412,6 +412,8 @@ Bus = {
     collectionList.push({
       lineId: lineId,
       targetOrder: targetOrder,
+      startSn: startSn,
+      endSn: endSn,
       sn: sn
     });
     return Settings.option('collectionList', collectionList);

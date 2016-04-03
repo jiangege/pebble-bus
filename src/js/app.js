@@ -43,7 +43,7 @@ NearLinesWin = (function(superclass){
     this.win = new UI.Menu({
       backgroundColor: 'white',
       textColor: 'black',
-      highlightBackgroundColor: 'black',
+      highlightBackgroundColor: '#FF5500',
       highlightTextColor: 'white'
     });
     this.win.on('select', function(e){
@@ -88,7 +88,8 @@ NearLinesWin = (function(superclass){
       sn = line.sn;
       if (line.type === "collection") {
         myCollectionItems.push({
-          title: sn + "路"
+          title: sn + "路",
+          subtitle: line.startSn + " -> " + line.endSn
         });
       } else {
         nearLineitems.push({
@@ -127,7 +128,7 @@ StationDetailWin = (function(superclass){
     this.win = new UI.Menu({
       backgroundColor: 'white',
       textColor: 'black',
-      highlightBackgroundColor: 'black',
+      highlightBackgroundColor: '#FF5500',
       highlightTextColor: 'white'
     });
     this.win.on('select', function(e){
@@ -202,7 +203,8 @@ BusesDetailWin = (function(superclass){
   function BusesDetailWin(){
     var this$ = this;
     this.win = new UI.Card({
-      scrollable: true
+      scrollable: true,
+      style: 'small'
     });
     this.win.action("select", 'ICON_COLLECTION');
     this.win.on('show', function(e){
@@ -221,7 +223,7 @@ BusesDetailWin = (function(superclass){
       }
       this$.data.hasCollection = !this$.data.hasCollection;
       if (this$.data.hasCollection) {
-        Bus.joinCollection((ref$ = this$.params.line, ref$.sn = this$.data.name, ref$));
+        Bus.joinCollection((ref$ = this$.params.line, ref$.sn = this$.data.name, ref$.endSn = this$.data.endSn, ref$.startSn = this$.data.startSn, ref$));
       } else {
         Bus.removeCollection(this$.params.line.lineId);
       }

@@ -309,12 +309,14 @@ Bus =
     Settings.option \collectionList, collectionList
     collectionList
 
-  joinCollection: ({lineId, sn, targetOrder}) ->
+  joinCollection: ({lineId, sn, targetOrder, startSn, endSn}) ->
     collectionList = @collectionList!
     for v, i in collectionList then if lineId is v.lineId then return
     collectionList.push {
       lineId
       targetOrder
+      startSn
+      endSn
       sn
     }
     Settings.option \collectionList, collectionList

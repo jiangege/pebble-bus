@@ -31,7 +31,7 @@ class NearLinesWin extends GenWin
     @win = new UI.Menu {
       backgroundColor: \white
       textColor: \black
-      highlightBackgroundColor: \black
+      highlightBackgroundColor: \#FF5500
       highlightTextColor: \white
     }
 
@@ -62,7 +62,10 @@ class NearLinesWin extends GenWin
       subtitle = ""
       sn = line.sn
       if line.type is "collection"
-        myCollectionItems.push title: sn + "路"
+        myCollectionItems.push {
+          title: sn + "路"
+          subtitle: "#{line.startSn} -> #{line.endSn}"
+        }
       else
         nearLineitems.push {
           title: sn
@@ -88,10 +91,10 @@ class NearLinesWin extends GenWin
 class StationDetailWin extends GenWin
   ->
     @win = new UI.Menu {
-      backgroundColor: 'white'
-      textColor: 'black'
-      highlightBackgroundColor: 'black'
-      highlightTextColor: 'white'
+      backgroundColor: \white
+      textColor: \black
+      highlightBackgroundColor: \#FF5500
+      highlightTextColor: \white
     }
 
     @win.on \select, (e) ~>
@@ -144,6 +147,7 @@ class BusesDetailWin extends GenWin
   ->
     @win = new UI.Card {
       scrollable: true
+      style: \small
     }
 
     @win.action "select", \ICON_COLLECTION
@@ -158,7 +162,11 @@ class BusesDetailWin extends GenWin
       return unless @data?
       @data.hasCollection = !@data.hasCollection
       if @data.hasCollection
-        Bus.joinCollection @params.line <<< sn: @data.name
+        Bus.joinCollection @params.line <<< {
+          sn: @data.name
+          endSn: @data.endSn
+          startSn: @data.startSn
+        }
       else
         Bus.removeCollection @params.line.lineId
 
