@@ -35,7 +35,7 @@ class NearLinesWin extends GenWin
     }
 
     @win.on \select, (e) ~>
-      if @data? then @selectCallback @data[e.sectionIndex]
+      if @data? then @selectCallback @data[e.sectionIndex + e.itemIndex]
 
     @win.on \show, (e) ~>
       @load ~> @update!
@@ -53,22 +53,32 @@ class NearLinesWin extends GenWin
     cb!
 
   update: ->
+    myCollectionItems = []
+    nearLineitems = []
+    nearLineSectionIndex = 0
+
     for line, i in @data
-      title = ""
+      subtitle = ""
       sn = line.sn
       if line.type is "collection"
-        title = "我的收藏"
-        sn += "路"
+        myCollectionItems.push title: sn + "路"
       else
-        title = "distance / #{line.distance}m"
-
-      if @win.section(i)?.items[0]?.title isnt sn
-        @win.section i, {
-          title
-          items:
-            * title: sn
-            ...
+        nearLineitems.push {
+          title: sn
+          subtitle: "距离你 / #{line.distance}米"
         }
+
+    if myCollectionItems.length > 0
+      @win.section 0,
+        title: "我的收藏"
+        items: myCollectionItems
+      nearLineSectionIndex = 1
+    else
+      @win.section 1,
+        title: "" items: []
+    @win.section nearLineSectionIndex,
+      title: "附近站点"
+      items: nearLineitems
 
   selectCallback: ->
   onselect: (cb) -> @selectCallback = cb
@@ -84,7 +94,7 @@ class StationDetailWin extends GenWin
     }
 
     @win.on \select, (e) ~>
-      if @data?.lines[e.sectionIndex - 1]? then @selectCallback @data.lines[e.sectionIndex - 1]
+      if @data?.lines[e.sectionIndex + e.itemIndex]? then @selectCallback @data.lines[e.sectionIndex + e.itemIndex]
 
     @win.on \show, (e) ~>
       @load ~> @update!
@@ -97,23 +107,37 @@ class StationDetailWin extends GenWin
 
   update: ->
 
-    for line, i in @data.lines
-      if i is 0
-        @win.section i, title: @data.sn, items: []
-      else
-        desc = if line.desc then "(#{line.desc})" else ""
-        if @win.section(i)?.items[0]?.title isnt "#{line.name} #{desc}"
-          @win.section i, {
-            title: "#{line.firstTime} - #{line.lastTime}"
-            items:
-              * title: "#{line.name}路 #{desc}"
-                subtitle: "#{line.startSn} -> #{line.endSn}"
-              ...
-          }
+    items = for line, i in @data.lines
+      desc = if line.desc then "(#{line.desc})" else ""
+      {
+        title: "#{line.name}路 #{desc}"
+        subtitle: "#{line.startSn} -> #{line.endSn}"
+      }
+
+    @win.section 0, {
+      title: @params.line.sn
+      items
+    }
 
   selectCallback: ->
 
   onselect: (cb) -> @selectCallback = cb
+
+class BusesDetailMenuWin extends GenWin
+  ->
+    @win = new UI.Menu {
+      backgroundColor: \white
+      textColor: \black
+      highlightBackgroundColor: \black
+      highlightTextColor: \white
+    }
+
+    @win.on \show, ~>
+      @update!
+
+  update: ->
+    @win.section 0, title: @params.hasCollection
+
 
 class BusesDetailWin extends GenWin
   ->

@@ -1,4 +1,4 @@
-var Bus, UI, Settings, GenWin, NearLinesWin, StationDetailWin, BusesDetailWin, AlertWin, SplashScreenWin, BusUI;
+var Bus, UI, Settings, GenWin, NearLinesWin, StationDetailWin, BusesDetailMenuWin, BusesDetailWin, AlertWin, SplashScreenWin, BusUI;
 Bus = require('bus');
 UI = require('ui');
 Settings = require('settings');
@@ -47,7 +47,7 @@ NearLinesWin = (function(superclass){
     });
     this.win.on('select', function(e){
       if (this$.data != null) {
-        return this$.selectCallback(this$.data[e.sectionIndex]);
+        return this$.selectCallback(this$.data[e.sectionIndex + e.itemIndex]);
       }
     });
     this.win.on('show', function(e){
@@ -76,28 +76,42 @@ NearLinesWin = (function(superclass){
     });
   };
   prototype.update = function(){
-    var i$, ref$, len$, i, line, title, sn, ref1$, ref2$, results$ = [];
+    var myCollectionItems, nearLineitems, nearLineSectionIndex, i$, ref$, len$, i, line, subtitle, sn;
+    myCollectionItems = [];
+    nearLineitems = [];
+    nearLineSectionIndex = 0;
     for (i$ = 0, len$ = (ref$ = this.data).length; i$ < len$; ++i$) {
       i = i$;
       line = ref$[i$];
-      title = "";
+      subtitle = "";
       sn = line.sn;
       if (line.type === "collection") {
-        title = "我的收藏";
-        sn += "路";
+        myCollectionItems.push({
+          title: sn + "路"
+        });
       } else {
-        title = "distance / " + line.distance + "m";
-      }
-      if (((ref1$ = this.win.section(i)) != null ? (ref2$ = ref1$.items[0]) != null ? ref2$.title : void 8 : void 8) !== sn) {
-        results$.push(this.win.section(i, {
-          title: title,
-          items: [{
-            title: sn
-          }]
-        }));
+        nearLineitems.push({
+          title: sn,
+          subtitle: "距离你 / " + line.distance + "米"
+        });
       }
     }
-    return results$;
+    if (myCollectionItems.length > 0) {
+      this.win.section(0, {
+        title: "我的收藏",
+        items: myCollectionItems
+      });
+      nearLineSectionIndex = 1;
+    } else {
+      this.win.section(1, {
+        title: "",
+        items: []
+      });
+    }
+    return this.win.section(nearLineSectionIndex, {
+      title: "附近站点",
+      items: nearLineitems
+    });
   };
   prototype.selectCallback = function(){};
   prototype.onselect = function(cb){
@@ -117,8 +131,8 @@ StationDetailWin = (function(superclass){
     });
     this.win.on('select', function(e){
       var ref$;
-      if (((ref$ = this$.data) != null ? ref$.lines[e.sectionIndex - 1] : void 8) != null) {
-        return this$.selectCallback(this$.data.lines[e.sectionIndex - 1]);
+      if (((ref$ = this$.data) != null ? ref$.lines[e.sectionIndex + e.itemIndex] : void 8) != null) {
+        return this$.selectCallback(this$.data.lines[e.sectionIndex + e.itemIndex]);
       }
     });
     this.win.on('show', function(e){
@@ -138,35 +152,49 @@ StationDetailWin = (function(superclass){
     });
   };
   prototype.update = function(){
-    var i$, ref$, len$, i, line, desc, ref1$, ref2$, results$ = [];
+    var items, res$, i$, ref$, len$, i, line, desc;
+    res$ = [];
     for (i$ = 0, len$ = (ref$ = this.data.lines).length; i$ < len$; ++i$) {
       i = i$;
       line = ref$[i$];
-      if (i === 0) {
-        results$.push(this.win.section(i, {
-          title: this.data.sn,
-          items: []
-        }));
-      } else {
-        desc = line.desc ? "(" + line.desc + ")" : "";
-        if (((ref1$ = this.win.section(i)) != null ? (ref2$ = ref1$.items[0]) != null ? ref2$.title : void 8 : void 8) !== line.name + " " + desc) {
-          results$.push(this.win.section(i, {
-            title: line.firstTime + " - " + line.lastTime,
-            items: [{
-              title: line.name + "路 " + desc,
-              subtitle: line.startSn + " -> " + line.endSn
-            }]
-          }));
-        }
-      }
+      desc = line.desc ? "(" + line.desc + ")" : "";
+      res$.push({
+        title: line.name + "路 " + desc,
+        subtitle: line.startSn + " -> " + line.endSn
+      });
     }
-    return results$;
+    items = res$;
+    return this.win.section(0, {
+      title: this.params.line.sn,
+      items: items
+    });
   };
   prototype.selectCallback = function(){};
   prototype.onselect = function(cb){
     return this.selectCallback = cb;
   };
   return StationDetailWin;
+}(GenWin));
+BusesDetailMenuWin = (function(superclass){
+  var prototype = extend$((import$(BusesDetailMenuWin, superclass).displayName = 'BusesDetailMenuWin', BusesDetailMenuWin), superclass).prototype, constructor = BusesDetailMenuWin;
+  function BusesDetailMenuWin(){
+    var this$ = this;
+    this.win = new UI.Menu({
+      backgroundColor: 'white',
+      textColor: 'black',
+      highlightBackgroundColor: 'black',
+      highlightTextColor: 'white'
+    });
+    this.win.on('show', function(){
+      return this$.update();
+    });
+  }
+  prototype.update = function(){
+    return this.win.section(0, {
+      title: this.params.hasCollection
+    });
+  };
+  return BusesDetailMenuWin;
 }(GenWin));
 BusesDetailWin = (function(superclass){
   var prototype = extend$((import$(BusesDetailWin, superclass).displayName = 'BusesDetailWin', BusesDetailWin), superclass).prototype, constructor = BusesDetailWin;
