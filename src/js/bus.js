@@ -27,7 +27,7 @@ Bus = {
     } else {
       opts.data = this.preFillParams(params, false);
     }
-    console.log("request " + method + " " + opts.url);
+    console.log("Request " + method + " " + opts.url);
     return ajax(opts, function(data){
       var ref$, error;
       try {

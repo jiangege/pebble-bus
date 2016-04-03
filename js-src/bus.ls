@@ -32,7 +32,7 @@ Bus =
     else
       opts.data = @preFillParams params, false
 
-    console.log "request #{method} #{opts.url}"
+    console.log "Request #{method} #{opts.url}"
 
     ajax opts
     , (data) ~>

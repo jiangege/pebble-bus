@@ -1,0 +1,40 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/Users/yuancangjian/.nvm/versions/node/v4.1.2/bin/node',
+1 verbose cli   '/Users/yuancangjian/.nvm/versions/node/v4.1.2/bin/npm',
+1 verbose cli   'run',
+1 verbose cli   'debug' ]
+2 info using npm@2.14.4
+3 info using node@v4.1.2
+4 verbose run-script [ 'predebug', 'debug', 'postdebug' ]
+5 info predebug pebble-life@1.0.0
+6 info debug pebble-life@1.0.0
+7 verbose unsafe-perm in lifecycle true
+8 info pebble-life@1.0.0 Failed to exec debug script
+9 verbose stack Error: pebble-life@1.0.0 debug: `gulp ls-compile&&pebble build&&pebble install --emulator basalt&& pebble logs`
+9 verbose stack Exit status 1
+9 verbose stack     at EventEmitter.<anonymous> (/Users/yuancangjian/.nvm/versions/node/v4.1.2/lib/node_modules/npm/lib/utils/lifecycle.js:214:16)
+9 verbose stack     at emitTwo (events.js:87:13)
+9 verbose stack     at EventEmitter.emit (events.js:172:7)
+9 verbose stack     at ChildProcess.<anonymous> (/Users/yuancangjian/.nvm/versions/node/v4.1.2/lib/node_modules/npm/lib/utils/spawn.js:24:14)
+9 verbose stack     at emitTwo (events.js:87:13)
+9 verbose stack     at ChildProcess.emit (events.js:172:7)
+9 verbose stack     at maybeClose (internal/child_process.js:818:16)
+9 verbose stack     at Process.ChildProcess._handle.onexit (internal/child_process.js:211:5)
+10 verbose pkgid pebble-life@1.0.0
+11 verbose cwd /Users/yuancangjian/Program/pebble-bus
+12 error Darwin 15.2.0
+13 error argv "/Users/yuancangjian/.nvm/versions/node/v4.1.2/bin/node" "/Users/yuancangjian/.nvm/versions/node/v4.1.2/bin/npm" "run" "debug"
+14 error node v4.1.2
+15 error npm  v2.14.4
+16 error code ELIFECYCLE
+17 error pebble-life@1.0.0 debug: `gulp ls-compile&&pebble build&&pebble install --emulator basalt&& pebble logs`
+17 error Exit status 1
+18 error Failed at the pebble-life@1.0.0 debug script 'gulp ls-compile&&pebble build&&pebble install --emulator basalt&& pebble logs'.
+18 error This is most likely a problem with the pebble-life package,
+18 error not with npm itself.
+18 error Tell the author that this fails on your system:
+18 error     gulp ls-compile&&pebble build&&pebble install --emulator basalt&& pebble logs
+18 error You can get their info via:
+18 error     npm owner ls pebble-life
+18 error There is likely additional logging output above.
+19 verbose exit [ 1, true ]
