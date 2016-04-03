@@ -1,7 +1,7 @@
 {
   "appKeys": {},
   "companyName": "Jiangege",
-  "longName": "Pebble Bus",
+  "longName": "China Bus",
   "resources": {
     "media": [
       {
@@ -27,14 +27,14 @@
     ]
   },
   "sdkVersion": "3",
-  "shortName": "pebble bus",
+  "shortName": "china bus",
   "targetPlatforms": [
     "aplite",
     "basalt"
   ],
   "uuid": "133015f0-cf20-4c03-996b-3c9be5a64e5d",
-  "versionCode": 10,
-  "versionLabel": "1.0",
+  "versionCode": 11,
+  "versionLabel": "1.1",
   "watchapp": {
     "watchface": false
   }
