@@ -16,11 +16,7 @@ Bus = {
       url: this.url + path,
       method: method,
       type: 'text',
-      cache: false,
-      headers: {
-        "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 5.1; m2 note Build/LMY47D)",
-        "Host": "api.chelaile.net.cn:7000"
-      }
+      cache: false
     };
     if (method === "get") {
       opts.url += this.preFillParams(params);
