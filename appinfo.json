@@ -15,6 +15,11 @@
         "type": "png"
       },
       {
+        "file": "images/icon_collection.png",
+        "name": "ICON_COLLECTION",
+        "type": "png"
+      },
+      {
         "file": "fonts/UbuntuMono-Regular.ttf",
         "name": "MONO_FONT_14",
         "type": "font"
@@ -28,8 +33,8 @@
     "basalt"
   ],
   "uuid": "133015f0-cf20-4c03-996b-3c9be5a64e5d",
-  "versionCode": 9,
-  "versionLabel": "0.9",
+  "versionCode": 10,
+  "versionLabel": "1.0",
   "watchapp": {
     "watchface": false
   }

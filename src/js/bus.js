@@ -166,11 +166,11 @@ Bus = {
     return this.request({
       path: "/goocity/city!localCity.action"
     }, function(err, data){
-      var localCity, cityInfo;
+      var ref$, localCity, cityInfo;
       if (err) {
         return cb(err);
       }
-      if ((localCity = data.localCity) != null) {
+      if (((ref$ = localCity = data.localCity) != null ? ref$.cityId : void 8) !== "") {
         cityInfo = {
           cityId: localCity.cityId,
           cityName: localCity.cityName,
@@ -180,7 +180,7 @@ Bus = {
         Settings.option("cityInfo", cityInfo);
         return cb(null, cityInfo);
       } else {
-        return cb(new Error, "无法获取城市信息");
+        return cb(new Error("暂不支持该城市"));
       }
     });
   },

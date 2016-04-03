@@ -2,6 +2,7 @@ require! {
   "bus": Bus
   "ui": UI
   "settings": Settings
+  "vector2": Vector2
 }
 
 class GenWin
@@ -144,6 +145,8 @@ class BusesDetailWin extends GenWin
     @win = new UI.Card {
       scrollable: true
     }
+
+    @win.action "select", \ICON_COLLECTION
     @win.on \show, (e) ~>
       @load ~> @update!
       @runUpdateTimer!
@@ -175,7 +178,7 @@ class BusesDetailWin extends GenWin
 
   update: ->
 
-    @win.title "#{@data.name}路 需要#{@data.price}"
+    @win.title "#{@data.name}路"
 
     @updateCollection!
 
@@ -185,21 +188,24 @@ class BusesDetailWin extends GenWin
       subtitleStr = @data.depDesc or @data.desc
     else if @data.lastTravelTime isnt -1
       if @data.lastTravelTime < 60
-        subtitleStr = "#{@data.lastTravelTime}秒"
+        subtitleStr = "距离到站约#{@data.lastTravelTime}秒"
       else
         lastTravelTime = Math.round @data.lastTravelTime / 60
-        subtitleStr = "#{lastTravelTime}分钟"
+        subtitleStr = "距离到站约#{lastTravelTime}分钟"
 
     @win.subtitle subtitleStr
-
     @win.body """
-      #{@data.firstTime} - #{@data.lastTime}
+
       #{@data.startSn} -> #{@data.endSn}
+
+      需准备车费: #{@data.price}
+
+      运营时间: #{@data.firstTime} - #{@data.lastTime}
     """
 
   updateCollection: ->
     title = @win.title!
-    @win.title title.replace("(已收藏)", "") + if @data.hasCollection then "(已收藏)" else ""
+    @win.title title.replace("\n(已收藏)", "") + if @data.hasCollection then "\n(已收藏)" else ""
 
 
 class AlertWin extends GenWin
@@ -224,11 +230,12 @@ class AlertWin extends GenWin
 
 class SplashScreenWin extends GenWin
   ->
-    @win = new UI.Card {
-      scrollable: true
-      title: "加载中..."
+    @win = new UI.Window
+    @win.add new UI.Image {
+      position: new Vector2 0, 0
+      size: new Vector2 144, 168 - 15
+      image: \IMAGE_LOGO_SPLASH
     }
-
     @win.on \show, ~>
       @load!
 

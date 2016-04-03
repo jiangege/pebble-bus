@@ -1,7 +1,8 @@
-var Bus, UI, Settings, GenWin, NearLinesWin, StationDetailWin, BusesDetailMenuWin, BusesDetailWin, AlertWin, SplashScreenWin, BusUI;
+var Bus, UI, Settings, Vector2, GenWin, NearLinesWin, StationDetailWin, BusesDetailMenuWin, BusesDetailWin, AlertWin, SplashScreenWin, BusUI;
 Bus = require('bus');
 UI = require('ui');
 Settings = require('settings');
+Vector2 = require('vector2');
 GenWin = (function(){
   GenWin.displayName = 'GenWin';
   var prototype = GenWin.prototype, constructor = GenWin;
@@ -203,6 +204,7 @@ BusesDetailWin = (function(superclass){
     this.win = new UI.Card({
       scrollable: true
     });
+    this.win.action("select", 'ICON_COLLECTION');
     this.win.on('show', function(e){
       this$.load(function(){
         return this$.update();
@@ -249,26 +251,26 @@ BusesDetailWin = (function(superclass){
   };
   prototype.update = function(){
     var subtitleStr, lastTravelTime;
-    this.win.title(this.data.name + "路 需要" + this.data.price);
+    this.win.title(this.data.name + "路");
     this.updateCollection();
     subtitleStr = "";
     if (this.data.desc != null && this.data.desc.trim() !== "") {
       subtitleStr = this.data.depDesc || this.data.desc;
     } else if (this.data.lastTravelTime !== -1) {
       if (this.data.lastTravelTime < 60) {
-        subtitleStr = this.data.lastTravelTime + "秒";
+        subtitleStr = "距离到站约" + this.data.lastTravelTime + "秒";
       } else {
         lastTravelTime = Math.round(this.data.lastTravelTime / 60);
-        subtitleStr = lastTravelTime + "分钟";
+        subtitleStr = "距离到站约" + lastTravelTime + "分钟";
       }
     }
     this.win.subtitle(subtitleStr);
-    return this.win.body("" + this.data.firstTime + " - " + this.data.lastTime + "\n" + this.data.startSn + " -> " + this.data.endSn);
+    return this.win.body("\n" + this.data.startSn + " -> " + this.data.endSn + "\n\n需准备车费: " + this.data.price + "\n\n运营时间: " + this.data.firstTime + " - " + this.data.lastTime);
   };
   prototype.updateCollection = function(){
     var title;
     title = this.win.title();
-    return this.win.title(title.replace("(已收藏)", "") + (this.data.hasCollection ? "(已收藏)" : ""));
+    return this.win.title(title.replace("\n(已收藏)", "") + (this.data.hasCollection ? "\n(已收藏)" : ""));
   };
   return BusesDetailWin;
 }(GenWin));
@@ -301,10 +303,12 @@ SplashScreenWin = (function(superclass){
   var prototype = extend$((import$(SplashScreenWin, superclass).displayName = 'SplashScreenWin', SplashScreenWin), superclass).prototype, constructor = SplashScreenWin;
   function SplashScreenWin(){
     var this$ = this;
-    this.win = new UI.Card({
-      scrollable: true,
-      title: "加载中..."
-    });
+    this.win = new UI.Window;
+    this.win.add(new UI.Image({
+      position: new Vector2(0, 0),
+      size: new Vector2(144, 168 - 15),
+      image: 'IMAGE_LOGO_SPLASH'
+    }));
     this.win.on('show', function(){
       return this$.load();
     });

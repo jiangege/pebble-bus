@@ -44,7 +44,8 @@ Bus =
       catch error
         cb error
 
-    , (error) -> cb new Error "网络错误:#{error}"
+    , (error) ->
+      cb new Error "网络错误:#{error}"
 
   handerRes: (data) -> JSON.parse (data.replace /\*|#|(YGKJ)/gmi, "")
 
@@ -144,7 +145,7 @@ Bus =
       path: "/goocity/city!localCity.action"
     }, (err, data) ->
       return cb err if err
-      if (localCity = data.localCity)?
+      if (localCity = data.localCity)?.cityId isnt ""
         cityInfo = {
           cityId: localCity.cityId
           cityName: localCity.cityName
@@ -154,7 +155,7 @@ Bus =
         Settings.option "cityInfo", cityInfo
         cb null, cityInfo
       else
-        cb new Error, "无法获取城市信息"
+        cb new Error "暂不支持该城市"
 
   auth: (cb) ->
     (err, userId) <~ @getUserID
