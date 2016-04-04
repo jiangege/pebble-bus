@@ -127,27 +127,11 @@ class StationDetailWin extends GenWin
 
   onselect: (cb) -> @selectCallback = cb
 
-class BusesDetailMenuWin extends GenWin
-  ->
-    @win = new UI.Menu {
-      backgroundColor: \white
-      textColor: \black
-      highlightBackgroundColor: \black
-      highlightTextColor: \white
-    }
-
-    @win.on \show, ~>
-      @update!
-
-  update: ->
-    @win.section 0, title: @params.hasCollection
-
 
 class BusesDetailWin extends GenWin
   ->
     @win = new UI.Card {
       scrollable: true
-      style: \small
     }
 
     @win.action "select", \ICON_COLLECTION

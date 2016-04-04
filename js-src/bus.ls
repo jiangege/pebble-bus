@@ -1,5 +1,6 @@
 require! {
   "./components/crypto-js": CryptoJS
+  "lodash": _
   "ajax"
   "settings": Settings
   "imei": imei_gen
@@ -178,22 +179,32 @@ Bus =
     sn
 
   getNearLines: (cb) ->
+    if (nearLinesCache = Settings.option \nearLines)?
+      console.log "从缓存获取附近站点信息"
+      cb null, nearLinesCache
     @request {
       path: "/bus/stop!nearlines.action"
       params:
         "gpstype": \wgs
     }, (err, data) ~>
       return cb err if err
-      cb null, for v, i in data.nearLines
-
+      nearLines = for v, i in data.nearLines
         {
           distance: v.distance
           stationId: v.sId
           sn: @encodeSn v.sn
           modelVersion: v.sortPolicy.replace "modelVersion=", ""
         }
+      unless _.isEqual nearLines, nearLinesCache
+        console.log "附近站点信息发生变化,重试更新"
+        Settings.option \nearLines, nearLinesCache
+        cb null, nearLines
 
   getStationDetail: ( {modelVersion, stationId}, cb) ->
+    if (stationDetailCache = Settings.option "station_#{stationId}")?
+      console.log "从缓存获取线路信息"
+      cb null, stationDetailCache
+
     @request {
       path: "/bus/stop!stationDetail.action"
       params:
@@ -217,12 +228,20 @@ Bus =
           "nextStation": @encodeSn v.nextStation.sn
           "targetOrder": v.targetStation.order
         }
-      cb null, {
+
+      stationDetail = {
         sn: @encodeSn data.sn
         lines
       }
+      unless _.isEqual stationDetail, stationDetailCache
+        console.log "线路信息发生变化,重新更新"
+        Settings.option "station_#{stationId}", stationDetail
+        cb null, stationDetail
 
   getLineDetail: ( {lineId, targetOrder}, cb) ->
+    if (lineDetailCache = Settings.option "lineDetail_#{lineId}")?
+      console.log "从缓存获取公交信息"
+      cb null, lineDetailCache
     @request {
       path: "/bus/line!lineDetail.action"
       params:
@@ -254,7 +273,7 @@ Bus =
           }
         rv
 
-      cb null, {
+      lineDetail = {
         name: data.line.name
         price: data.line.price
         depDesc: data.depDesc
@@ -267,6 +286,10 @@ Bus =
         lastTravelTime
         buses
       }
+      unless _.isEqual lineDetail, lineDetailCache
+        console.log "公交信息发生变化，重试更新"
+        Settings.option "lineDetail_#{lineId}", lineDetail
+        cb null, lineDetail
 
 
   updateBusesDetail: ( {lineId, targetOrder, flpolicy}, cb) ->

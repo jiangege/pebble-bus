@@ -1,5 +1,6 @@
-var CryptoJS, ajax, Settings, imei_gen, udid_gen, Bus;
+var CryptoJS, _, ajax, Settings, imei_gen, udid_gen, Bus;
 CryptoJS = require('./components/crypto-js');
+_ = require('lodash');
 ajax = require('ajax');
 Settings = require('settings');
 imei_gen = require('imei');
@@ -219,36 +220,47 @@ Bus = {
     return sn;
   },
   getNearLines: function(cb){
-    var this$ = this;
+    var nearLinesCache, this$ = this;
+    if ((nearLinesCache = Settings.option('nearLines')) != null) {
+      console.log("从缓存获取附近站点信息");
+      cb(null, nearLinesCache);
+    }
     return this.request({
       path: "/bus/stop!nearlines.action",
       params: {
         "gpstype": 'wgs'
       }
     }, function(err, data){
-      var i, v;
+      var nearLines, res$, i$, ref$, len$, i, v;
       if (err) {
         return cb(err);
       }
-      return cb(null, (function(){
-        var i$, ref$, len$, results$ = [];
-        for (i$ = 0, len$ = (ref$ = data.nearLines).length; i$ < len$; ++i$) {
-          i = i$;
-          v = ref$[i$];
-          results$.push({
-            distance: v.distance,
-            stationId: v.sId,
-            sn: this.encodeSn(v.sn),
-            modelVersion: v.sortPolicy.replace("modelVersion=", "")
-          });
-        }
-        return results$;
-      }.call(this$)));
+      res$ = [];
+      for (i$ = 0, len$ = (ref$ = data.nearLines).length; i$ < len$; ++i$) {
+        i = i$;
+        v = ref$[i$];
+        res$.push({
+          distance: v.distance,
+          stationId: v.sId,
+          sn: this$.encodeSn(v.sn),
+          modelVersion: v.sortPolicy.replace("modelVersion=", "")
+        });
+      }
+      nearLines = res$;
+      if (!_.isEqual(nearLines, nearLinesCache)) {
+        console.log("附近站点信息发生变化,重试更新");
+        Settings.option('nearLines', nearLinesCache);
+        return cb(null, nearLines);
+      }
     });
   },
   getStationDetail: function(arg$, cb){
-    var modelVersion, stationId, this$ = this;
+    var modelVersion, stationId, stationDetailCache, this$ = this;
     modelVersion = arg$.modelVersion, stationId = arg$.stationId;
+    if ((stationDetailCache = Settings.option("station_" + stationId)) != null) {
+      console.log("从缓存获取线路信息");
+      cb(null, stationDetailCache);
+    }
     return this.request({
       path: "/bus/stop!stationDetail.action",
       params: {
@@ -259,7 +271,7 @@ Bus = {
         "stationId": stationId
       }
     }, function(err, data){
-      var lines, res$, i$, ref$, len$, i, v;
+      var lines, res$, i$, ref$, len$, i, v, stationDetail;
       if (err) {
         return cb(err);
       }
@@ -281,15 +293,24 @@ Bus = {
         });
       }
       lines = res$;
-      return cb(null, {
+      stationDetail = {
         sn: this$.encodeSn(data.sn),
         lines: lines
-      });
+      };
+      if (!_.isEqual(stationDetail, stationDetailCache)) {
+        console.log("线路信息发生变化,重新更新");
+        Settings.option("station_" + stationId, stationDetail);
+        return cb(null, stationDetail);
+      }
     });
   },
   getLineDetail: function(arg$, cb){
-    var lineId, targetOrder, this$ = this;
+    var lineId, targetOrder, lineDetailCache, this$ = this;
     lineId = arg$.lineId, targetOrder = arg$.targetOrder;
+    if ((lineDetailCache = Settings.option("lineDetail_" + lineId)) != null) {
+      console.log("从缓存获取公交信息");
+      cb(null, lineDetailCache);
+    }
     return this.request({
       path: "/bus/line!lineDetail.action",
       params: {
@@ -300,7 +321,7 @@ Bus = {
         "targetOrder": targetOrder
       }
     }, function(err, data){
-      var stationName, i$, ref$, len$, i, v, lastTravelTime, buses, res$, rv, ref1$, arrivalTime, travelTime;
+      var stationName, i$, ref$, len$, i, v, lastTravelTime, buses, res$, rv, ref1$, arrivalTime, travelTime, lineDetail;
       if (err) {
         return cb(err);
       }
@@ -331,7 +352,7 @@ Bus = {
         res$.push(rv);
       }
       buses = res$;
-      return cb(null, {
+      lineDetail = {
         name: data.line.name,
         price: data.line.price,
         depDesc: data.depDesc,
@@ -343,7 +364,12 @@ Bus = {
         flpolicy: data.line.sortPolicy.replace("flpolicy=", ""),
         lastTravelTime: lastTravelTime,
         buses: buses
-      });
+      };
+      if (!_.isEqual(lineDetail, lineDetailCache)) {
+        console.log("公交信息发生变化，重试更新");
+        Settings.option("lineDetail_" + lineId, lineDetail);
+        return cb(null, lineDetail);
+      }
     });
   },
   updateBusesDetail: function(arg$, cb){

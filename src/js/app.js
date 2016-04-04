@@ -1,4 +1,4 @@
-var Bus, UI, Settings, Vector2, GenWin, NearLinesWin, StationDetailWin, BusesDetailMenuWin, BusesDetailWin, AlertWin, SplashScreenWin, BusUI;
+var Bus, UI, Settings, Vector2, GenWin, NearLinesWin, StationDetailWin, BusesDetailWin, AlertWin, SplashScreenWin, BusUI;
 Bus = require('bus');
 UI = require('ui');
 Settings = require('settings');
@@ -177,34 +177,12 @@ StationDetailWin = (function(superclass){
   };
   return StationDetailWin;
 }(GenWin));
-BusesDetailMenuWin = (function(superclass){
-  var prototype = extend$((import$(BusesDetailMenuWin, superclass).displayName = 'BusesDetailMenuWin', BusesDetailMenuWin), superclass).prototype, constructor = BusesDetailMenuWin;
-  function BusesDetailMenuWin(){
-    var this$ = this;
-    this.win = new UI.Menu({
-      backgroundColor: 'white',
-      textColor: 'black',
-      highlightBackgroundColor: 'black',
-      highlightTextColor: 'white'
-    });
-    this.win.on('show', function(){
-      return this$.update();
-    });
-  }
-  prototype.update = function(){
-    return this.win.section(0, {
-      title: this.params.hasCollection
-    });
-  };
-  return BusesDetailMenuWin;
-}(GenWin));
 BusesDetailWin = (function(superclass){
   var prototype = extend$((import$(BusesDetailWin, superclass).displayName = 'BusesDetailWin', BusesDetailWin), superclass).prototype, constructor = BusesDetailWin;
   function BusesDetailWin(){
     var this$ = this;
     this.win = new UI.Card({
-      scrollable: true,
-      style: 'small'
+      scrollable: true
     });
     this.win.action("select", 'ICON_COLLECTION');
     this.win.on('show', function(e){
