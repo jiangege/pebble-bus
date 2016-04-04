@@ -31,7 +31,7 @@ class NearLinesWin extends GenWin
     @win = new UI.Menu {
       backgroundColor: \white
       textColor: \black
-      highlightBackgroundColor: \#FF5500
+      highlightBackgroundColor: \black
       highlightTextColor: \white
     }
 
@@ -93,7 +93,7 @@ class StationDetailWin extends GenWin
     @win = new UI.Menu {
       backgroundColor: \white
       textColor: \black
-      highlightBackgroundColor: \#FF5500
+      highlightBackgroundColor: \black
       highlightTextColor: \white
     }
 
