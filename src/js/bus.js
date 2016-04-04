@@ -129,6 +129,7 @@ Bus = {
       var lat, ref$, lng, ref1$, coords;
       if ((lat = pos != null ? (ref$ = pos.coords) != null ? ref$.latitude : void 8 : void 8) != null && (lng = pos != null ? (ref1$ = pos.coords) != null ? ref1$.longitude : void 8 : void 8) != null) {
         coords = {
+          enableHighAccuracy: true,
           lat: lat,
           lng: lng
         };

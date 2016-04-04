@@ -116,6 +116,7 @@ Bus =
     navigator.geolocation.getCurrentPosition (pos) ->
       if (lat = pos?.coords?.latitude)? and (lng = pos?.coords?.longitude)?
         coords = {
+          enableHighAccuracy: true
           lat
           lng
         }
