@@ -135,9 +135,11 @@ Bus = {
         Settings.option("coords", coords);
         return cb(null, coords);
       } else {
-        return cb(new Error("无法获取经纬度!!"));
+        return cb(new Error("无法获取位置,请检查gps开关"));
       }
-    }, cb, {
+    }, function(){
+      return cb(new Error("无法获取位置,请检查gps开关"));
+    }, {
       maximumAge: 10000,
       timeout: 10000
     });

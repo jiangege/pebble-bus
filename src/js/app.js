@@ -43,10 +43,12 @@ NearLinesWin = (function(superclass){
     this.win = new UI.Menu({
       backgroundColor: 'white',
       textColor: 'black',
-      highlightBackgroundColor: '#FF5500',
+      highlightBackgroundColor: 'black',
       highlightTextColor: 'white'
     });
     this.win.on('select', function(e){
+      this$.sectionIndex = e.sectionIndex;
+      this$.itemIndex = e.itemIndex;
       if (this$.data != null) {
         return this$.selectCallback(this$.data[e.sectionIndex + e.itemIndex]);
       }
@@ -110,10 +112,13 @@ NearLinesWin = (function(superclass){
         items: []
       });
     }
-    return this.win.section(nearLineSectionIndex, {
+    this.win.section(nearLineSectionIndex, {
       title: "附近站点",
       items: nearLineitems
     });
+    if (this.sectionIndex != null) {
+      return this.win.selection(this.sectionIndex, this.itemIndex);
+    }
   };
   prototype.selectCallback = function(){};
   prototype.onselect = function(cb){
@@ -128,7 +133,7 @@ StationDetailWin = (function(superclass){
     this.win = new UI.Menu({
       backgroundColor: 'white',
       textColor: 'black',
-      highlightBackgroundColor: '#FF5500',
+      highlightBackgroundColor: 'black',
       highlightTextColor: 'white'
     });
     this.win.on('select', function(e){
@@ -283,12 +288,9 @@ SplashScreenWin = (function(superclass){
   var prototype = extend$((import$(SplashScreenWin, superclass).displayName = 'SplashScreenWin', SplashScreenWin), superclass).prototype, constructor = SplashScreenWin;
   function SplashScreenWin(){
     var this$ = this;
-    this.win = new UI.Window;
-    this.win.add(new UI.Image({
-      position: new Vector2(0, 0),
-      size: new Vector2(144, 168 - 15),
-      image: 'IMAGE_LOGO_SPLASH'
-    }));
+    this.win = new UI.Card({
+      title: "加载中...."
+    });
     this.win.on('show', function(){
       return this$.load();
     });

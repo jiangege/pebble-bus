@@ -36,6 +36,8 @@ class NearLinesWin extends GenWin
     }
 
     @win.on \select, (e) ~>
+      @sectionIndex = e.sectionIndex
+      @itemIndex = e.itemIndex
       if @data? then @selectCallback @data[e.sectionIndex + e.itemIndex]
 
     @win.on \show, (e) ~>
@@ -72,6 +74,8 @@ class NearLinesWin extends GenWin
           subtitle: "距离你 / #{line.distance}米"
         }
 
+
+
     if myCollectionItems.length > 0
       @win.section 0,
         title: "我的收藏"
@@ -83,6 +87,11 @@ class NearLinesWin extends GenWin
     @win.section nearLineSectionIndex,
       title: "附近站点"
       items: nearLineitems
+
+    if @sectionIndex?
+      @win.selection @sectionIndex, @itemIndex
+
+
 
   selectCallback: ->
   onselect: (cb) -> @selectCallback = cb
@@ -222,11 +231,8 @@ class AlertWin extends GenWin
 
 class SplashScreenWin extends GenWin
   ->
-    @win = new UI.Window
-    @win.add new UI.Image {
-      position: new Vector2 0, 0
-      size: new Vector2 144, 168 - 15
-      image: \IMAGE_LOGO_SPLASH
+    @win = new UI.Card {
+      title: "加载中...."
     }
     @win.on \show, ~>
       @load!
