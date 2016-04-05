@@ -20,7 +20,7 @@ class GenWin
   runUpdateTimer: ->
     @stopUpdateTimer!
     @_updateInv = setInterval ~>
-      @load (~> @update!), false
+      @load (~> @update!), true
     , @updateInv
 
   stopUpdateTimer: ->
@@ -33,6 +33,10 @@ class NearLinesWin extends GenWin
       textColor: \black
       highlightBackgroundColor: \black
       highlightTextColor: \white
+      sections:
+        * title: "加载中..."
+          items: []
+        ...
     }
 
     @win.on \select, (e) ~>
@@ -104,6 +108,10 @@ class StationDetailWin extends GenWin
       textColor: \black
       highlightBackgroundColor: \black
       highlightTextColor: \white
+      sections:
+        * title: "加载中..."
+          items: []
+        ...
     }
 
     @win.on \select, (e) ~>
@@ -141,6 +149,7 @@ class BusesDetailWin extends GenWin
   ->
     @win = new UI.Card {
       scrollable: true
+      title: "加载中..."
     }
 
     @win.action "select", \ICON_COLLECTION
@@ -165,8 +174,8 @@ class BusesDetailWin extends GenWin
 
       @updateCollection!
 
-  load: (cb, formShow = true) ->
-    if formShow
+  load: (cb, isUpdating = false) ->
+    unless isUpdating
       (err, detail) <~ Bus.getLineDetail @params.line
       return @loaderrorCallback err if err
       @data = detail <<< hasCollection: !!Bus.hasCollection @params.line.lineId

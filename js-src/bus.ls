@@ -113,17 +113,16 @@ Bus =
     else {}
 
   getCurrentLocation: (cb) ->
-    navigator.geolocation.getCurrentPosition (pos) ->
+    coordsCache = @getCache \coords, cb
+    navigator.geolocation.getCurrentPosition (pos) ~>
       if (lat = pos?.coords?.latitude)? and (lng = pos?.coords?.longitude)?
         coords = {
           enableHighAccuracy: true
           lat
           lng
         }
-        Settings.option "coords", coords
-        cb null, coords
-      else
-        cb new Error "无法获取位置,请检查gps开关"
+        @setCache \coords, coords, cb
+      else cb new Error "无法获取位置,请检查gps开关"
     , -> cb new Error "无法获取位置,请检查gps开关"
     , {
       maximumAge: 10000
@@ -144,9 +143,10 @@ Bus =
     else cb null, useId
 
   getCurrentCity: (cb) ->
+    cityCache = @getCache \cityInfo, cb
     @request {
       path: "/goocity/city!localCity.action"
-    }, (err, data) ->
+    }, (err, data) ~>
       return cb err if err
       if (localCity = data.localCity)?.cityId isnt ""
         cityInfo = {
@@ -155,8 +155,7 @@ Bus =
           lat: localCity.lat
           lng: localCity.lng
         }
-        Settings.option "cityInfo", cityInfo
-        cb null, cityInfo
+        @setCache \cityInfo, cityInfo, cb
       else
         cb new Error "暂不支持该城市"
 
@@ -180,10 +179,23 @@ Bus =
       sn = sn.replace rpAry1[i], i + 1
     sn
 
+  getCache: (cacheName, cb) ->
+    if (cache = Settings.option cacheName)?
+      console.log "从缓存取出#{cacheName}"
+      cb null, cache
+      cache
+    else
+      null
+
+  setCache: (cacheName, val, cb) ->
+    cacheVal = Settings.option cacheName
+    unless _.isEqual val, cacheVal
+      console.log "#{cacheName}发生改变,重试更新!!"
+      Settings.option cacheName, val
+      cb null, val
+
   getNearLines: (cb) ->
-    if (nearLinesCache = Settings.option \nearLines)?
-      console.log "从缓存获取附近站点信息"
-      cb null, nearLinesCache
+    @getCache \nearLines, cb
     @request {
       path: "/bus/stop!nearlines.action"
       params:
@@ -197,16 +209,10 @@ Bus =
           sn: @encodeSn v.sn
           modelVersion: v.sortPolicy.replace "modelVersion=", ""
         }
-      unless _.isEqual nearLines, nearLinesCache
-        console.log "附近站点信息发生变化,重试更新"
-        Settings.option \nearLines, nearLinesCache
-        cb null, nearLines
+      @setCache \nearLines, nearLines, cb
 
   getStationDetail: ( {modelVersion, stationId}, cb) ->
-    if (stationDetailCache = Settings.option "station_#{stationId}")?
-      console.log "从缓存获取线路信息"
-      cb null, stationDetailCache
-
+    @getCache "station_#{stationId}", cb
     @request {
       path: "/bus/stop!stationDetail.action"
       params:
@@ -235,15 +241,10 @@ Bus =
         sn: @encodeSn data.sn
         lines
       }
-      unless _.isEqual stationDetail, stationDetailCache
-        console.log "线路信息发生变化,重新更新"
-        Settings.option "station_#{stationId}", stationDetail
-        cb null, stationDetail
+      @setCache "station_#{stationId}", stationDetail,  cb
 
   getLineDetail: ( {lineId, targetOrder}, cb) ->
-    if (lineDetailCache = Settings.option "lineDetail_#{lineId}")?
-      console.log "从缓存获取公交信息"
-      cb null, lineDetailCache
+    @getCache "lineDetail_#{lineId}", cb
     @request {
       path: "/bus/line!lineDetail.action"
       params:
@@ -288,10 +289,8 @@ Bus =
         lastTravelTime
         buses
       }
-      unless _.isEqual lineDetail, lineDetailCache
-        console.log "公交信息发生变化，重试更新"
-        Settings.option "lineDetail_#{lineId}", lineDetail
-        cb null, lineDetail
+
+      @setCache "lineDetail_#{lineId}", lineDetail,  cb
 
 
   updateBusesDetail: ( {lineId, targetOrder, flpolicy}, cb) ->

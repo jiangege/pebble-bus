@@ -125,6 +125,8 @@ Bus = {
     }
   },
   getCurrentLocation: function(cb){
+    var coordsCache, this$ = this;
+    coordsCache = this.getCache('coords', cb);
     return navigator.geolocation.getCurrentPosition(function(pos){
       var lat, ref$, lng, ref1$, coords;
       if ((lat = pos != null ? (ref$ = pos.coords) != null ? ref$.latitude : void 8 : void 8) != null && (lng = pos != null ? (ref1$ = pos.coords) != null ? ref1$.longitude : void 8 : void 8) != null) {
@@ -133,8 +135,7 @@ Bus = {
           lat: lat,
           lng: lng
         };
-        Settings.option("coords", coords);
-        return cb(null, coords);
+        return this$.setCache('coords', coords, cb);
       } else {
         return cb(new Error("无法获取位置,请检查gps开关"));
       }
@@ -167,6 +168,8 @@ Bus = {
     }
   },
   getCurrentCity: function(cb){
+    var cityCache, this$ = this;
+    cityCache = this.getCache('cityInfo', cb);
     return this.request({
       path: "/goocity/city!localCity.action"
     }, function(err, data){
@@ -181,8 +184,7 @@ Bus = {
           lat: localCity.lat,
           lng: localCity.lng
         };
-        Settings.option("cityInfo", cityInfo);
-        return cb(null, cityInfo);
+        return this$.setCache('cityInfo', cityInfo, cb);
       } else {
         return cb(new Error("暂不支持该城市"));
       }
@@ -222,12 +224,28 @@ Bus = {
     }
     return sn;
   },
-  getNearLines: function(cb){
-    var nearLinesCache, this$ = this;
-    if ((nearLinesCache = Settings.option('nearLines')) != null) {
-      console.log("从缓存获取附近站点信息");
-      cb(null, nearLinesCache);
+  getCache: function(cacheName, cb){
+    var cache;
+    if ((cache = Settings.option(cacheName)) != null) {
+      console.log("从缓存取出" + cacheName);
+      cb(null, cache);
+      return cache;
+    } else {
+      return null;
     }
+  },
+  setCache: function(cacheName, val, cb){
+    var cacheVal;
+    cacheVal = Settings.option(cacheName);
+    if (!_.isEqual(val, cacheVal)) {
+      console.log(cacheName + "发生改变,重试更新!!");
+      Settings.option(cacheName, val);
+      return cb(null, val);
+    }
+  },
+  getNearLines: function(cb){
+    var this$ = this;
+    this.getCache('nearLines', cb);
     return this.request({
       path: "/bus/stop!nearlines.action",
       params: {
@@ -250,20 +268,13 @@ Bus = {
         });
       }
       nearLines = res$;
-      if (!_.isEqual(nearLines, nearLinesCache)) {
-        console.log("附近站点信息发生变化,重试更新");
-        Settings.option('nearLines', nearLinesCache);
-        return cb(null, nearLines);
-      }
+      return this$.setCache('nearLines', nearLines, cb);
     });
   },
   getStationDetail: function(arg$, cb){
-    var modelVersion, stationId, stationDetailCache, this$ = this;
+    var modelVersion, stationId, this$ = this;
     modelVersion = arg$.modelVersion, stationId = arg$.stationId;
-    if ((stationDetailCache = Settings.option("station_" + stationId)) != null) {
-      console.log("从缓存获取线路信息");
-      cb(null, stationDetailCache);
-    }
+    this.getCache("station_" + stationId, cb);
     return this.request({
       path: "/bus/stop!stationDetail.action",
       params: {
@@ -300,20 +311,13 @@ Bus = {
         sn: this$.encodeSn(data.sn),
         lines: lines
       };
-      if (!_.isEqual(stationDetail, stationDetailCache)) {
-        console.log("线路信息发生变化,重新更新");
-        Settings.option("station_" + stationId, stationDetail);
-        return cb(null, stationDetail);
-      }
+      return this$.setCache("station_" + stationId, stationDetail, cb);
     });
   },
   getLineDetail: function(arg$, cb){
-    var lineId, targetOrder, lineDetailCache, this$ = this;
+    var lineId, targetOrder, this$ = this;
     lineId = arg$.lineId, targetOrder = arg$.targetOrder;
-    if ((lineDetailCache = Settings.option("lineDetail_" + lineId)) != null) {
-      console.log("从缓存获取公交信息");
-      cb(null, lineDetailCache);
-    }
+    this.getCache("lineDetail_" + lineId, cb);
     return this.request({
       path: "/bus/line!lineDetail.action",
       params: {
@@ -368,11 +372,7 @@ Bus = {
         lastTravelTime: lastTravelTime,
         buses: buses
       };
-      if (!_.isEqual(lineDetail, lineDetailCache)) {
-        console.log("公交信息发生变化，重试更新");
-        Settings.option("lineDetail_" + lineId, lineDetail);
-        return cb(null, lineDetail);
-      }
+      return this$.setCache("lineDetail_" + lineId, lineDetail, cb);
     });
   },
   updateBusesDetail: function(arg$, cb){

@@ -27,7 +27,7 @@ GenWin = (function(){
     return this._updateInv = setInterval(function(){
       return this$.load(function(){
         return this$.update();
-      }, false);
+      }, true);
     }, this.updateInv);
   };
   prototype.stopUpdateTimer = function(){
@@ -44,7 +44,11 @@ NearLinesWin = (function(superclass){
       backgroundColor: 'white',
       textColor: 'black',
       highlightBackgroundColor: 'black',
-      highlightTextColor: 'white'
+      highlightTextColor: 'white',
+      sections: [{
+        title: "加载中...",
+        items: []
+      }]
     });
     this.win.on('select', function(e){
       this$.sectionIndex = e.sectionIndex;
@@ -134,7 +138,11 @@ StationDetailWin = (function(superclass){
       backgroundColor: 'white',
       textColor: 'black',
       highlightBackgroundColor: 'black',
-      highlightTextColor: 'white'
+      highlightTextColor: 'white',
+      sections: [{
+        title: "加载中...",
+        items: []
+      }]
     });
     this.win.on('select', function(e){
       var ref$;
@@ -187,7 +195,8 @@ BusesDetailWin = (function(superclass){
   function BusesDetailWin(){
     var this$ = this;
     this.win = new UI.Card({
-      scrollable: true
+      scrollable: true,
+      title: "加载中..."
     });
     this.win.action("select", 'ICON_COLLECTION');
     this.win.on('show', function(e){
@@ -213,10 +222,10 @@ BusesDetailWin = (function(superclass){
       return this$.updateCollection();
     });
   }
-  prototype.load = function(cb, formShow){
+  prototype.load = function(cb, isUpdating){
     var ref$, this$ = this;
-    formShow == null && (formShow = true);
-    if (formShow) {
+    isUpdating == null && (isUpdating = false);
+    if (!isUpdating) {
       return Bus.getLineDetail(this.params.line, function(err, detail){
         if (err) {
           return this$.loaderrorCallback(err);
