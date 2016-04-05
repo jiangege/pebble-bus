@@ -25,11 +25,12 @@
   "shortName": "china bus",
   "targetPlatforms": [
     "aplite",
-    "basalt"
+    "basalt",
+    "chalk"
   ],
   "uuid": "133015f0-cf20-4c03-996b-3c9be5a64e5d",
-  "versionCode": 16,
-  "versionLabel": "1.6",
+  "versionCode": 17,
+  "versionLabel": "1.7",
   "watchapp": {
     "watchface": false
   }
