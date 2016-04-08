@@ -228,6 +228,7 @@ BusesDetailWin = (function(superclass){
     if (!isUpdating) {
       return Bus.getLineDetail(this.params.line, function(err, detail){
         if (err) {
+          this$.stopUpdateTimer();
           return this$.loaderrorCallback(err);
         }
         this$.data = (detail.hasCollection = !!Bus.hasCollection(this$.params.line.lineId), detail);
@@ -236,6 +237,7 @@ BusesDetailWin = (function(superclass){
     } else if (this.data) {
       return Bus.updateBusesDetail((ref$ = import$({}, this.params.line), ref$.flpolicy = this.data.flpolicy, ref$), function(err, detail){
         if (err) {
+          this$.stopUpdateTimer();
           return this$.loaderrorCallback(err);
         }
         import$(this$.data, detail);

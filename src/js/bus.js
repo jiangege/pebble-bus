@@ -84,7 +84,7 @@ Bus = {
       if (paramsStr.length > 1) {
         paramsStr += "&";
       }
-      paramsStr += k + "=" + v;
+      paramsStr += k + "=" + encodeURIComponent(v);
     }
   },
   UDID: function(){
@@ -333,46 +333,48 @@ Bus = {
         return cb(err);
       }
       stationName = "";
-      for (i$ = 0, len$ = (ref$ = data.stations).length; i$ < len$; ++i$) {
-        i = i$;
-        v = ref$[i$];
-        if (v.order === data.targetOrder) {
-          stationName = v.sn;
-        }
-      }
-      lastTravelTime = -1;
-      res$ = [];
-      for (i$ = 0, len$ = (ref$ = data.buses).length; i$ < len$; ++i$) {
-        i = i$;
-        v = ref$[i$];
-        rv = {
-          state: v.state
-        };
-        if (v.state > -1 && v.travels.length > 0) {
-          ref1$ = v.travels[0], arrivalTime = ref1$.arrivalTime, travelTime = ref1$.travelTime;
-          if (lastTravelTime === -1 || travelTime < lastTravelTime) {
-            lastTravelTime = travelTime;
+      if ((data != null ? data.stations : void 8) != null) {
+        for (i$ = 0, len$ = (ref$ = data.stations).length; i$ < len$; ++i$) {
+          i = i$;
+          v = ref$[i$];
+          if (v.order === data.targetOrder) {
+            stationName = v.sn;
           }
-          rv.arrivalTime = arrivalTime;
-          rv.travelTime = travelTime;
         }
-        res$.push(rv);
+        lastTravelTime = -1;
+        res$ = [];
+        for (i$ = 0, len$ = (ref$ = data.buses).length; i$ < len$; ++i$) {
+          i = i$;
+          v = ref$[i$];
+          rv = {
+            state: v.state
+          };
+          if (v.state > -1 && v.travels.length > 0) {
+            ref1$ = v.travels[0], arrivalTime = ref1$.arrivalTime, travelTime = ref1$.travelTime;
+            if (lastTravelTime === -1 || travelTime < lastTravelTime) {
+              lastTravelTime = travelTime;
+            }
+            rv.arrivalTime = arrivalTime;
+            rv.travelTime = travelTime;
+          }
+          res$.push(rv);
+        }
+        buses = res$;
+        lineDetail = {
+          name: data.line.name,
+          price: data.line.price,
+          depDesc: data.depDesc,
+          desc: data.line.desc,
+          firstTime: data.line.firstTime,
+          lastTime: data.line.lastTime,
+          startSn: this$.encodeSn(data.line.startSn),
+          endSn: this$.encodeSn(data.line.endSn),
+          flpolicy: data.line.sortPolicy.replace("flpolicy=", ""),
+          lastTravelTime: lastTravelTime,
+          buses: buses
+        };
+        return this$.setCache("lineDetail_" + lineId, lineDetail, cb);
       }
-      buses = res$;
-      lineDetail = {
-        name: data.line.name,
-        price: data.line.price,
-        depDesc: data.depDesc,
-        desc: data.line.desc,
-        firstTime: data.line.firstTime,
-        lastTime: data.line.lastTime,
-        startSn: this$.encodeSn(data.line.startSn),
-        endSn: this$.encodeSn(data.line.endSn),
-        flpolicy: data.line.sortPolicy.replace("flpolicy=", ""),
-        lastTravelTime: lastTravelTime,
-        buses: buses
-      };
-      return this$.setCache("lineDetail_" + lineId, lineDetail, cb);
     });
   },
   updateBusesDetail: function(arg$, cb){
@@ -395,30 +397,32 @@ Bus = {
         return cb(err);
       }
       lastTravelTime = -1;
-      res$ = [];
-      for (i$ = 0, len$ = (ref$ = data.buses).length; i$ < len$; ++i$) {
-        i = i$;
-        v = ref$[i$];
-        rv = {
-          state: v.state
-        };
-        if (v.state > -1 && v.travels.length > 0) {
-          ref1$ = v.travels[0], arrivalTime = ref1$.arrivalTime, travelTime = ref1$.travelTime;
-          if (lastTravelTime === -1 || travelTime < lastTravelTime) {
-            lastTravelTime = travelTime;
+      if ((data != null ? data.buses : void 8) != null) {
+        res$ = [];
+        for (i$ = 0, len$ = (ref$ = data.buses).length; i$ < len$; ++i$) {
+          i = i$;
+          v = ref$[i$];
+          rv = {
+            state: v.state
+          };
+          if (v.state > -1 && v.travels.length > 0) {
+            ref1$ = v.travels[0], arrivalTime = ref1$.arrivalTime, travelTime = ref1$.travelTime;
+            if (lastTravelTime === -1 || travelTime < lastTravelTime) {
+              lastTravelTime = travelTime;
+            }
+            rv.arrivalTime = arrivalTime;
+            rv.travelTime = travelTime;
           }
-          rv.arrivalTime = arrivalTime;
-          rv.travelTime = travelTime;
+          res$.push(rv);
         }
-        res$.push(rv);
+        buses = res$;
+        return cb(null, {
+          depDesc: data.depDesc,
+          desc: data.line.desc,
+          lastTravelTime: lastTravelTime,
+          buses: buses
+        });
       }
-      buses = res$;
-      return cb(null, {
-        depDesc: data.depDesc,
-        desc: data.line.desc,
-        lastTravelTime: lastTravelTime,
-        buses: buses
-      });
     });
   },
   collectionList: function(){

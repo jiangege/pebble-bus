@@ -177,12 +177,16 @@ class BusesDetailWin extends GenWin
   load: (cb, isUpdating = false) ->
     unless isUpdating
       (err, detail) <~ Bus.getLineDetail @params.line
-      return @loaderrorCallback err if err
+      if err
+        @stopUpdateTimer!
+        return @loaderrorCallback err
       @data = detail <<< hasCollection: !!Bus.hasCollection @params.line.lineId
       cb!
     else if @data
       (err, detail) <~ Bus.updateBusesDetail {} <<< @params.line <<< {flpolicy: @data.flpolicy}
-      return @loaderrorCallback err if err
+      if err
+        @stopUpdateTimer!
+        return @loaderrorCallback err
       @data <<< detail
       cb!
 

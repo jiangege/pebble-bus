@@ -78,7 +78,7 @@ Bus =
       for let k, v of initParams
         if paramsStr.length > 1
           paramsStr += "&"
-        paramsStr += "#{k}=#{v}"
+        paramsStr += "#{k}=#{encodeURIComponent v}"
       paramsStr
     else
       initParams
@@ -256,42 +256,41 @@ Bus =
     }, (err, data) ~>
       return cb err if err
       stationName = ""
-      for v, i in data.stations
-        if v.order is data.targetOrder
-          stationName = v.sn
+      if data?.stations?
+        for v, i in data.stations
+          if v.order is data.targetOrder
+            stationName = v.sn
 
-      lastTravelTime = -1
+        lastTravelTime = -1
 
-      buses = for v, i in data.buses
-        rv = {
-          state: v.state
-        }
-        if v.state > -1 and v.travels.length > 0
-          {arrivalTime, travelTime} = v.travels[0]
-          if lastTravelTime is -1 or travelTime < lastTravelTime
-            lastTravelTime = travelTime
-          rv <<< {
-            arrivalTime
-            travelTime
+        buses = for v, i in data.buses
+          rv = {
+            state: v.state
           }
-        rv
+          if v.state > -1 and v.travels.length > 0
+            {arrivalTime, travelTime} = v.travels[0]
+            if lastTravelTime is -1 or travelTime < lastTravelTime
+              lastTravelTime = travelTime
+            rv <<< {
+              arrivalTime
+              travelTime
+            }
+          rv
 
-      lineDetail = {
-        name: data.line.name
-        price: data.line.price
-        depDesc: data.depDesc
-        desc: data.line.desc
-        firstTime: data.line.firstTime
-        lastTime: data.line.lastTime
-        startSn: @encodeSn data.line.startSn
-        endSn: @encodeSn data.line.endSn
-        flpolicy: data.line.sortPolicy.replace "flpolicy=", ""
-        lastTravelTime
-        buses
-      }
-
-      @setCache "lineDetail_#{lineId}", lineDetail,  cb
-
+        lineDetail = {
+          name: data.line.name
+          price: data.line.price
+          depDesc: data.depDesc
+          desc: data.line.desc
+          firstTime: data.line.firstTime
+          lastTime: data.line.lastTime
+          startSn: @encodeSn data.line.startSn
+          endSn: @encodeSn data.line.endSn
+          flpolicy: data.line.sortPolicy.replace "flpolicy=", ""
+          lastTravelTime
+          buses
+        }
+        @setCache "lineDetail_#{lineId}", lineDetail,  cb
 
   updateBusesDetail: ( {lineId, targetOrder, flpolicy}, cb) ->
     @request {
@@ -308,25 +307,26 @@ Bus =
       return cb err if err
 
       lastTravelTime = -1
-      buses = for v, i in data.buses
-        rv = {
-          state: v.state
-        }
-        if v.state > -1 and v.travels.length > 0
-          {arrivalTime, travelTime} = v.travels[0]
-          if lastTravelTime is -1 or travelTime < lastTravelTime
-            lastTravelTime = travelTime
-          rv <<< {
-            arrivalTime
-            travelTime
+      if data?.buses?
+        buses = for v, i in data.buses
+          rv = {
+            state: v.state
           }
-        rv
-      cb null, {
-        depDesc: data.depDesc
-        desc: data.line.desc
-        lastTravelTime
-        buses
-      }
+          if v.state > -1 and v.travels.length > 0
+            {arrivalTime, travelTime} = v.travels[0]
+            if lastTravelTime is -1 or travelTime < lastTravelTime
+              lastTravelTime = travelTime
+            rv <<< {
+              arrivalTime
+              travelTime
+            }
+          rv
+        cb null, {
+          depDesc: data.depDesc
+          desc: data.line.desc
+          lastTravelTime
+          buses
+        }
 
   collectionList: ->
     collectionList = Settings.option \collectionList or []
