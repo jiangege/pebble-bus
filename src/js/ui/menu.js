@@ -7,11 +7,11 @@ var Window = require('ui/window');
 var simply = require('ui/simply');
 
 var defaults = {
+  status: true,
   backgroundColor: 'white',
   textColor: 'black',
   highlightBackgroundColor: 'black',
   highlightTextColor: 'white',
-  fullscreen: false,
 };
 
 var Menu = function(menuDef) {
@@ -310,14 +310,19 @@ Menu.prototype.item = function(sectionIndex, itemIndex, item) {
   return this;
 };
 
-Menu.prototype.selection = function(callback_or_sectionIndex, itemIndex) {
-  if (typeof callback_or_sectionIndex === 'function') {
+Menu.prototype.selection = function(sectionIndex, itemIndex) {
+  var callback;
+  if (typeof sectionIndex === 'function') {
+    callback = sectionIndex;
+    sectionIndex = undefined;
+  }
+  if (callback) {
     this._selections.push(callback);
     simply.impl.menuSelection();
   } else {
     this._selection = {
-      sectionIndex: callback_or_sectionIndex,
-      itemIndex: itemIndex
+      sectionIndex: sectionIndex,
+      itemIndex: itemIndex,
     };
     this._select();
   }
