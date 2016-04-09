@@ -28,7 +28,7 @@ Bus = {
     return ajax(opts, function(data){
       var ref$, error;
       try {
-        data = this$.handerRes(data);
+        data = this$.handleRes(data);
         if (data.errmsg != null) {
           return cb(new Error(data.errmsg));
         } else if ((data != null ? (ref$ = data.jsonr) != null ? ref$.data : void 8 : void 8) != null) {
@@ -44,7 +44,7 @@ Bus = {
       return cb(new Error("网络错误:" + error));
     });
   },
-  handerRes: function(data){
+  handleRes: function(data){
     return JSON.parse(data.replace(/\*|#|(YGKJ)/gmi, ""));
   },
   preFillParams: function(params, isQuery){

@@ -40,13 +40,19 @@ class NearLinesWin extends GenWin
     }
 
     @win.on \select, (e) ~>
+      index = e.itemIndex
       @sectionIndex = e.sectionIndex
       @itemIndex = e.itemIndex
-      if @data? then @selectCallback @data[e.sectionIndex + e.itemIndex]
+      for i til @sectionIndex
+        index += @win.state.sections[i].items.length
+
+      if @data? then @selectCallback @data[index]
 
     @win.on \show, (e) ~>
       @load ~> @update!
 
+
+  refresh: -> @load ~> @update!
 
   load: (cb) ->
     (err, lines) <~ Bus.getNearLines
@@ -115,7 +121,8 @@ class StationDetailWin extends GenWin
     }
 
     @win.on \select, (e) ~>
-      if @data?.lines[e.sectionIndex + e.itemIndex]? then @selectCallback @data.lines[e.sectionIndex + e.itemIndex]
+
+      if @data?.lines[e.itemIndex]? then @selectCallback @data.lines[e.itemIndex]
 
     @win.on \show, (e) ~>
       @load ~> @update!
@@ -184,9 +191,7 @@ class BusesDetailWin extends GenWin
       cb!
     else if @data
       (err, detail) <~ Bus.updateBusesDetail {} <<< @params.line <<< {flpolicy: @data.flpolicy}
-      if err
-        @stopUpdateTimer!
-        return @loaderrorCallback err
+      return @stopUpdateTimer! if err
       @data <<< detail
       cb!
 
@@ -275,8 +280,14 @@ BusUI =
           info: error.message
         }
 
+    loaded = false
     @wins.splashScreenWin.onloadsuccess ~>
-      @wins.nearLinesWin.show!
+      if loaded is true
+        console.log "refresh"
+        @wins.nearLinesWin.refresh!
+      else
+        @wins.nearLinesWin.show!
+      loaded := true
       @wins.splashScreenWin.hide!
       (line) <~ @wins.nearLinesWin.onselect
       if line.type is \collection

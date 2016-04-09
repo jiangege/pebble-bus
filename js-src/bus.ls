@@ -35,7 +35,7 @@ Bus =
     ajax opts
     , (data) ~>
       try
-        data = @handerRes data
+        data = @handleRes data
         if data.errmsg?
           cb new Error data.errmsg
         else if data?.jsonr?.data?
@@ -48,7 +48,7 @@ Bus =
     , (error) ->
       cb new Error "网络错误:#{error}"
 
-  handerRes: (data) -> JSON.parse (data.replace /\*|#|(YGKJ)/gmi, "")
+  handleRes: (data) -> JSON.parse (data.replace /\*|#|(YGKJ)/gmi, "")
 
   preFillParams: (params, isQuery = true) ->
     initParams = {

@@ -51,10 +51,16 @@ NearLinesWin = (function(superclass){
       }]
     });
     this.win.on('select', function(e){
+      var index, i$, to$, i;
+      index = e.itemIndex;
       this$.sectionIndex = e.sectionIndex;
       this$.itemIndex = e.itemIndex;
+      for (i$ = 0, to$ = this$.sectionIndex; i$ < to$; ++i$) {
+        i = i$;
+        index += this$.win.state.sections[i].items.length;
+      }
       if (this$.data != null) {
-        return this$.selectCallback(this$.data[e.sectionIndex + e.itemIndex]);
+        return this$.selectCallback(this$.data[index]);
       }
     });
     this.win.on('show', function(e){
@@ -63,6 +69,12 @@ NearLinesWin = (function(superclass){
       });
     });
   }
+  prototype.refresh = function(){
+    var this$ = this;
+    return this.load(function(){
+      return this$.update();
+    });
+  };
   prototype.load = function(cb){
     var this$ = this;
     return Bus.getNearLines(function(err, lines){
@@ -146,8 +158,8 @@ StationDetailWin = (function(superclass){
     });
     this.win.on('select', function(e){
       var ref$;
-      if (((ref$ = this$.data) != null ? ref$.lines[e.sectionIndex + e.itemIndex] : void 8) != null) {
-        return this$.selectCallback(this$.data.lines[e.sectionIndex + e.itemIndex]);
+      if (((ref$ = this$.data) != null ? ref$.lines[e.itemIndex] : void 8) != null) {
+        return this$.selectCallback(this$.data.lines[e.itemIndex]);
       }
     });
     this.win.on('show', function(e){
@@ -208,6 +220,9 @@ BusesDetailWin = (function(superclass){
     this.win.on('hide', function(e){
       return this$.stopUpdateTimer();
     });
+    this.win.on('longClick', 'select', function(e){
+      return console.log('longClick');
+    });
     this.win.on('click', 'select', function(e){
       var ref$;
       if (this$.data == null) {
@@ -237,8 +252,7 @@ BusesDetailWin = (function(superclass){
     } else if (this.data) {
       return Bus.updateBusesDetail((ref$ = import$({}, this.params.line), ref$.flpolicy = this.data.flpolicy, ref$), function(err, detail){
         if (err) {
-          this$.stopUpdateTimer();
-          return this$.loaderrorCallback(err);
+          return this$.stopUpdateTimer();
         }
         import$(this$.data, detail);
         return cb();
@@ -330,12 +344,19 @@ BusUI = {
     splashScreenWin: new SplashScreenWin
   },
   init: function(){
-    var i$, ref$, this$ = this;
+    var i$, ref$, loaded, this$ = this;
     for (i$ in ref$ = this.wins) {
       (fn$.call(this, i$, ref$[i$]));
     }
+    loaded = false;
     this.wins.splashScreenWin.onloadsuccess(function(){
-      this$.wins.nearLinesWin.show();
+      if (loaded === true) {
+        console.log("refresh");
+        this$.wins.nearLinesWin.refresh();
+      } else {
+        this$.wins.nearLinesWin.show();
+      }
+      loaded = true;
       this$.wins.splashScreenWin.hide();
       return this$.wins.nearLinesWin.onselect(function(line){
         if (line.type === 'collection') {
